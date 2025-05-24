@@ -1,0 +1,40 @@
+# Archivos de compilación
+/target/
+
+# Configuración específica de IntelliJ IDEA
+.idea/
+/*.iml
+
+# Configuración específica de VS Code
+.vscode/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Logs y temporales
+*.log
+*.tmp
+*.swp
+
+# Archivos de Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# Dependencias descargadas por Maven (por defecto no se deben incluir)
+**/dependency-reduced-pom.xml
+
+# Archivos de sistema de Windows/Mac
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# Archivos de entorno de ejecución
+*.class
+
+# Archivos generados por pruebas o cobertura
+/test-output/
+*.exec
+
+# Otros
+*.bak
+*.orig
