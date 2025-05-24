@@ -68,5 +68,23 @@
             <version>1.21.5-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+
+        <!-- Residence Plugin - Instalación manual requerida -->
+        <dependency>
+            <groupId>com.bekvon.bukkit</groupId>
+            <artifactId>residence</artifactId>
+            <version>5.1.7.5</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/Residence-5.1.7.5.jar</systemPath>
+        </dependency>
+
+        <!-- GemsEconomy Plugin - Instalación manual requerida -->
+        <dependency>
+            <groupId>me.xanium</groupId>
+            <artifactId>gemseconomy</artifactId>
+            <version>4.9.2</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/GemsEconomy-4.9.2.jar</systemPath>
+        </dependency>
     </dependencies>
 </project>
