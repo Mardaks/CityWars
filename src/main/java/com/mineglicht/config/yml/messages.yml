@@ -1,0 +1,128 @@
+# ===============================================
+# CityWars Plugin - Mensajes Configurables
+# ===============================================
+
+# Mensajes Generales
+general:
+  prefix: "&8[&6CityWars&8] &r"
+  no-permission: "&cNo tienes permisos para hacer esto."
+  player-not-found: "&cJugador no encontrado."
+  command-only-player: "&cEste comando solo puede ser usado por jugadores."
+  config-reloaded: "&aConfiguración recargada correctamente."
+  invalid-arguments: "&cArgumentos inválidos. Usa: &e{usage}"
+
+# Mensajes de Ciudad
+city:
+  created: "&a¡Ciudad '&e{city}&a' creada exitosamente!"
+  deleted: "&c¡Ciudad '&e{city}&c' eliminada!"
+  not-found: "&cLa ciudad '&e{city}&c' no existe."
+  already-exists: "&cYa existe una ciudad con ese nombre."
+  join-success: "&a¡Te has unido a la ciudad '&e{city}&a'!"
+  leave-success: "&a¡Has abandonado la ciudad '&e{city}&a'!"
+  already-member: "&cYa eres miembro de una ciudad."
+  not-member: "&cNo eres miembro de ninguna ciudad."
+  expanded: "&a¡Ciudad expandida &e{blocks} &abloques hacia &e{direction}&a!"
+  expansion-failed: "&cNo se pudo expandir la ciudad."
+  insufficient-funds: "&cLa ciudad no tiene fondos suficientes."
+  max-citizens-reached: "&cLa ciudad ha alcanzado el máximo de ciudadanos."
+  info-header: "&6=== Información de &e{city} &6==="
+  info-format:
+    - "&7Alcalde: &f{mayor}"
+    - "&7Ciudadanos: &f{citizens}/{max-citizens}"
+    - "&7Territorio: &f{size} bloques"
+    - "&7Fondos: &f{funds} {economy}"
+    - "&7Estado: &f{status}"
+    - "&7Fundada: &f{created-date}"
+
+# Mensajes de Asedio
+siege:
+  started: "&c¡Asedio iniciado! &e{attacker} &cvs &e{defender}"
+  ended: "&a¡Asedio terminado! &7Razón: &f{reason}"
+  victory: "&a¡Victoria! &7Has conquistado &e{city}&7!"
+  defeat: "&c¡Derrota! &7Tu ciudad ha sido conquistada."
+  under-attack: "&c¡Estás bajo ataque!"
+  protector-attacked: "&c¡Protector atacado!"
+  insufficient-defenders: "&cNo hay suficientes defensores conectados (&e{percentage}% &crequerido)."
+  already-active: "&cYa hay un asedio activo."
+  cannot-attack-self: "&cNo puedes atacar tu propia ciudad."
+  city-attacking: "&cTu ciudad está atacando y no puede ser atacada."
+  city-under-attack: "&cTu ciudad está bajo ataque y no puede atacar."
+  cooldown-active: "&cHay un cooldown activo entre estas ciudades. &7Tiempo restante: &e{time}"
+  flag-placed: "&c¡Bandera de asedio colocada en &e{city}&c!"
+  flag-destroyed: "&a¡Bandera de asedio destruida!"
+  insufficient-funds: "&cNo tienes suficientes &e{economy} &cpara iniciar un asedio."
+  invalid-location: "&cNo puedes colocar la bandera aquí."
+
+# Mensajes de Saqueo
+loot:
+  phase-started: "&c¡Fase de saqueo iniciada! &7Duración: &e{duration} &7minutos"
+  phase-ended: "&a¡Fase de saqueo terminada!"
+  funds-stolen: "&c¡&e{amount} {economy} &crobados del banco de la ciudad!"
+  chest-opened: "&6Cofre saqueado por &e{player}"
+  block-broken: "&6Bloque destruido por &e{player} &6durante el saqueo"
+  protection-disabled: "&c¡Protecciones deshabilitadas!"
+  protection-restored: "&a¡Protecciones restauradas!"
+
+# Mensajes de Impuestos
+tax:
+  collected: "&aSe han cobrado &e{amount} {economy} &aen impuestos."
+  insufficient-balance: "&cNo tienes suficiente dinero para pagar los impuestos."
+  collection-notice: "&6¡Recordatorio! Los impuestos se cobrarán en &e{time}&6."
+  collection-failed: "&cError al cobrar impuestos a &e{player}&c."
+  rate-changed: "&aTasa de impuestos cambiada a &e{rate}%&a."
+
+# Mensajes de Protección
+protection:
+  block-break: "&cNo puedes romper bloques en esta ciudad."
+  block-place: "&cNo puedes colocar bloques en esta ciudad."
+  interact: "&cNo puedes interactuar en esta ciudad."
+  pvp: "&cEl PvP está deshabilitado en esta ciudad."
+  enderpearl: "&cNo puedes usar enderpearls en esta ciudad."
+  mob-spawn: "&cLos mobs no pueden aparecer en esta ciudad."
+
+# Mensajes de Economía
+economy:
+  deposit-success: "&a&e{amount} {economy} &adepositados en el banco de la ciudad."
+  withdraw-success: "&a&e{amount} {economy} &aretirados del banco de la ciudad."
+  insufficient-funds: "&cFondos insuficientes."
+  balance-show: "&6Balance: &e{amount} {economy}"
+  transaction-failed: "&cTransacción fallida."
+
+# Mensajes de Comandos
+commands:
+  help-header: "&6=== Comandos de CityWars ==="
+  help-list:
+    - "&e/city create <nombre> &7- Crear una nueva ciudad"
+    - "&e/city delete <nombre> &7- Eliminar una ciudad &c(Admin)"
+    - "&e/city join <nombre> &7- Unirse a una ciudad"
+    - "&e/city leave &7- Abandonar tu ciudad"
+    - "&e/city info [nombre] &7- Ver información de una ciudad"
+    - "&e/city expand <bloques> &7- Expandir tu ciudad"
+    - "&e/city bank &7- Ver balance del banco de la ciudad"
+    - "&e/siege start <ciudad> &7- Iniciar un asedio"
+    - "&e/siege stop &7- Detener un asedio &c(Admin)"
+    - "&e/siege info &7- Ver información de asedios activos"
+    - "&e/citywars reload &7- Recargar configuración &c(Admin)"
+  usage: "&cUso: &e{usage}"
+
+# Mensajes de Eventos (Broadcasts)
+events:
+  city-created-broadcast: "&a¡Nueva ciudad '&e{city}&a' creada por &e{player}&a!"
+  city-deleted-broadcast: "&c¡Ciudad '&e{city}&c' eliminada!"
+  siege-started-broadcast: "&c¡Guerra! &e{attacker} &cestá atacando &e{defender}&c!"
+  siege-ended-broadcast: "&a¡Guerra terminada! &e{winner} &avs &e{loser}"
+
+# Títulos y Subtítulos
+titles:
+  under-attack:
+    title: "&c&l¡BAJO ATAQUE!"
+    subtitle: "&fTu ciudad está siendo asediada"
+  protector-attacked:
+    title: "&4&l¡PROTECTOR ATACADO!"
+    subtitle: "&fDefiendan al protector"
+  siege-victory:
+    title: "&a&l¡VICTORIA!"
+    subtitle: "&fHan conquistado &e{city}"
+  siege-defeat:
+    title: "&c&l¡DERROTA!"
+    subtitle: "&fSu ciudad ha sido conquistada"

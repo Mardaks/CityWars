@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Random;
 
 public class FireworkUtils {
+
     private static final Random random = new Random();
 
     // Colores predefinidos para diferentes tipos de eventos

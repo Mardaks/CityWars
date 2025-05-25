@@ -11,6 +11,7 @@ import java.util.Set;
  * Representa un estandarte de asedio utilizado para iniciar guerras entre ciudades
  */
 public class SiegeFlag {
+
     private final UUID id;
     private final UUID attackingCityId;
     private final UUID defendingCityId;

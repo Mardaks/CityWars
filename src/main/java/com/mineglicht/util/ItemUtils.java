@@ -17,6 +17,7 @@ import java.util.List;
  * Utilidades para el manejo de items, especialmente el estandarte de asedio
  */
 public class ItemUtils {
+
     // Keys para persistent data
     public static final String SIEGE_FLAG_KEY = "citywars_siege_flag";
     public static final String CITY_FLAG_KEY = "citywars_city_flag";
