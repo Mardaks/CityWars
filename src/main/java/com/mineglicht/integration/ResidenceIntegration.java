@@ -5,6 +5,7 @@ import com.bekvon.bukkit.residence.api.ResidenceApi;
 import com.bekvon.bukkit.residence.protection.ClaimedResidence;
 import com.bekvon.bukkit.residence.protection.ResidenceManager;
 import com.bekvon.bukkit.residence.protection.FlagPermissions;
+import com.bekvon.bukkit.residence.containers.Flags;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -25,12 +26,13 @@ public class ResidenceIntegration {
     private boolean isEnabled = false;
 
     // Almacena el estado original de las protecciones durante el saqueo
-    private final Map<String, Map<String, Boolean>> originalProtections = new HashMap<>();
+    private final Map<String, Map<Flags, Boolean>> originalProtections = new HashMap<>();
 
     // Flags importantes que se deshabilitarán durante el saqueo
-    private final List<String> siegeFlags = List.of(
-            "build", "destroy", "use", "container", "pvp", "damage",
-            "bucket", "ignite", "explode", "creeper", "tnt"
+    private final List<Flags> siegeFlags = List.of(
+            Flags.build, Flags.destroy, Flags.use, Flags.container,
+            Flags.pvp, Flags.damage, Flags.flow, Flags.ignite,
+            Flags.explode, Flags.creeper, Flags.tnt
     );
 
     public ResidenceIntegration(Plugin plugin) {
@@ -138,10 +140,6 @@ public class ResidenceIntegration {
      * @return true si la residencia está en la ciudad
      */
     private boolean isResidenceInCity(ClaimedResidence residence, String cityName) {
-        // Aquí puedes implementar la lógica para determinar si una residencia está dentro de una ciudad
-        // Por ejemplo, verificar si está dentro de las coordenadas de la región de la ciudad
-        // o si tiene un flag específico que la identifique como parte de la ciudad
-
         try {
             // Opción 1: Por nombre de residencia
             if (residence.getResidenceName().toLowerCase().startsWith(cityName.toLowerCase())) {
@@ -153,7 +151,7 @@ public class ResidenceIntegration {
             // return isLocationInCity(residenceLocation, cityName);
 
             // Opción 3: Por flag personalizado
-            // return residence.getPermissions().has("citywars.city", cityName, false);
+            // return residence.getPermissions().playerHas(null, Flags.admin, false);
 
         } catch (Exception e) {
             plugin.getLogger().warning("Error al verificar si la residencia pertenece a la ciudad: " + e.getMessage());
@@ -222,35 +220,15 @@ public class ResidenceIntegration {
             FlagPermissions permissions = residence.getPermissions();
 
             // Guardar el estado original de las protecciones
-            Map<String, Boolean> originalFlags = new HashMap<>();
+            Map<Flags, Boolean> originalFlags = new HashMap<>();
 
-            for (String flag : siegeFlags) {
+            for (Flags flag : siegeFlags) {
                 // Guardar el estado actual
                 boolean currentState = permissions.has(flag, false);
                 originalFlags.put(flag, currentState);
 
-                // Deshabilitar la protección (permitir la acción)
-                switch (flag) {
-                    case "build":
-                    case "destroy":
-                    case "use":
-                    case "container":
-                        permissions.set(flag, true, false); // Permitir para todos
-                        break;
-                    case "pvp":
-                    case "damage":
-                        permissions.set(flag, true, false); // Permitir PvP y daño
-                        break;
-                    case "bucket":
-                    case "ignite":
-                        permissions.set(flag, true, false); // Permitir uso de buckets e ignición
-                        break;
-                    case "explode":
-                    case "creeper":
-                    case "tnt":
-                        permissions.set(flag, true, false); // Permitir explosiones
-                        break;
-                }
+                // Deshabilitar la protección usando setFlag con FlagState
+                permissions.setFlag(flag.toString(), FlagPermissions.FlagState.TRUE);
             }
 
             // Guardar el estado original
@@ -277,14 +255,18 @@ public class ResidenceIntegration {
             }
 
             FlagPermissions permissions = residence.getPermissions();
-            Map<String, Boolean> originalFlags = originalProtections.get(residenceName);
+            Map<Flags, Boolean> originalFlags = originalProtections.get(residenceName);
 
             // Restaurar cada flag a su estado original
-            for (Map.Entry<String, Boolean> entry : originalFlags.entrySet()) {
-                String flag = entry.getKey();
+            for (Map.Entry<Flags, Boolean> entry : originalFlags.entrySet()) {
+                Flags flag = entry.getKey();
                 boolean originalState = entry.getValue();
 
-                permissions.set(flag, originalState, false);
+                // Convertir boolean a FlagState
+                FlagPermissions.FlagState flagState = originalState ?
+                        FlagPermissions.FlagState.TRUE : FlagPermissions.FlagState.FALSE;
+
+                permissions.setFlag(flag.toString(), flagState);
             }
 
             // Limpiar el almacenamiento temporal
@@ -307,7 +289,10 @@ public class ResidenceIntegration {
         if (!isEnabled) return true; // Si no hay Residence, permitir por defecto
 
         try {
-            return ResidenceApi.getPermissionManager().canPlaceBlock(player, location, true);
+            ClaimedResidence residence = getResidenceAt(location);
+            if (residence == null) return true;
+
+            return residence.getPermissions().playerHas(player, Flags.build, true);
         } catch (Exception e) {
             plugin.getLogger().warning("Error al verificar permisos de construcción: " + e.getMessage());
             return false;
@@ -324,7 +309,10 @@ public class ResidenceIntegration {
         if (!isEnabled) return true;
 
         try {
-            return ResidenceApi.getPermissionManager().canBreakBlock(player, location, true);
+            ClaimedResidence residence = getResidenceAt(location);
+            if (residence == null) return true;
+
+            return residence.getPermissions().playerHas(player, Flags.destroy, true);
         } catch (Exception e) {
             plugin.getLogger().warning("Error al verificar permisos de destrucción: " + e.getMessage());
             return false;
@@ -343,7 +331,7 @@ public class ResidenceIntegration {
             ClaimedResidence residence = getResidenceAt(location);
             if (residence == null) return true; // No hay residencia, PvP habilitado por defecto
 
-            return residence.getPermissions().has("pvp", true);
+            return residence.getPermissions().has(Flags.pvp, true);
         } catch (Exception e) {
             plugin.getLogger().warning("Error al verificar estado de PvP: " + e.getMessage());
             return true;
@@ -358,7 +346,7 @@ public class ResidenceIntegration {
         if (!isEnabled || residence == null) return;
 
         try {
-            residence.getPermissions().set("pvp", true, false);
+            residence.getPermissions().setFlag(Flags.pvp.toString(), FlagPermissions.FlagState.TRUE);
             plugin.getLogger().info("PvP habilitado para asedio en la residencia: " + residence.getResidenceName());
         } catch (Exception e) {
             plugin.getLogger().warning("Error al habilitar PvP para asedio: " + e.getMessage());
@@ -401,9 +389,9 @@ public class ResidenceIntegration {
 
         // Mostrar algunos flags importantes
         FlagPermissions perms = residence.getPermissions();
-        info.append("PvP: ").append(perms.has("pvp", false) ? "Habilitado" : "Deshabilitado").append("\n");
-        info.append("Construcción: ").append(perms.has("build", false) ? "Permitida" : "Protegida").append("\n");
-        info.append("Destrucción: ").append(perms.has("destroy", false) ? "Permitida" : "Protegida");
+        info.append("PvP: ").append(perms.has(Flags.pvp, false) ? "Habilitado" : "Deshabilitado").append("\n");
+        info.append("Construcción: ").append(perms.has(Flags.build, false) ? "Permitida" : "Protegida").append("\n");
+        info.append("Destrucción: ").append(perms.has(Flags.destroy, false) ? "Permitida" : "Protegida");
 
         return info.toString();
     }
