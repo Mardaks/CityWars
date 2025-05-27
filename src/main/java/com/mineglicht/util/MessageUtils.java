@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
  * Utilidades para el manejo de mensajes, títulos y subtítulos
  */
 public class MessageUtils {
+
     private static final Pattern HEX_PATTERN = Pattern.compile("&#([A-Fa-f0-9]{6})");
 
     /**

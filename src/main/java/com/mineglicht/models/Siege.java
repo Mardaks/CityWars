@@ -3,6 +3,7 @@ package com.mineglicht.models;
 import org.bukkit.Location;
 
 public class Siege {
+
     private final String attackingCity;
     private final String targetCity;
     private final Location bannerLocation;

@@ -1,262 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
-    <!-- Información del proyecto -->
-    <groupId>com.tudominio</groupId>
-    <artifactId>citywars</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+
+    <groupId>com.mineglicht</groupId>
+    <artifactId>CityWars</artifactId>
+    <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    
+
     <name>CityWars</name>
-    <description>Sistema avanzado de ciudades con mecánicas de asedio PvP para Minecraft</description>
-    <url>https://github.com/tuusuario/citywars</url>
-    
-    <!-- Propiedades del proyecto -->
+
     <properties>
-        <!-- Java 21 -->
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        
-        <!-- Versiones de dependencias -->
-        <minecraft.version>1.21.5</minecraft.version>
-        <spigot.version>1.21.5-R0.1-SNAPSHOT</spigot.version>
-        <junit.version>5.10.1</junit.version>
-        <mockito.version>5.8.0</mockito.version>
     </properties>
-    
-    <!-- Repositorios -->
-    <repositories>
-        <!-- Spigot Repository -->
-        <repository>
-            <id>spigot-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-        </repository>
-        
-        <!-- Paper Repository -->
-        <repository>
-            <id>papermc</id>
-            <url>https://repo.papermc.io/repository/maven-public/</url>
-        </repository>
-        
-        <!-- JitPack (para dependencias de GitHub) -->
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-        
-        <!-- CodeMC Repository (para GemsEconomy y otros plugins) -->
-        <repository>
-            <id>codemc-repo</id>
-            <url>https://repo.codemc.io/repository/maven-public/</url>
-        </repository>
-        
-        <!-- Maven Central -->
-        <repository>
-            <id>central</id>
-            <url>https://repo1.maven.org/maven2/</url>
-        </repository>
-    </repositories>
-    
-    <!-- Dependencias -->
-    <dependencies>
-        <!-- Spigot API -->
-        <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>${spigot.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        
-        <!-- Paper API (opcional, para funciones adicionales) -->
-        <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper-api</artifactId>
-            <version>${spigot.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        
-        <!-- GemsEconomy API -->
-        <dependency>
-            <groupId>me.xanium</groupId>
-            <artifactId>gemseconomy</artifactId>
-            <version>4.8.0</version>
-            <scope>provided</scope>
-        </dependency>
-        
-        <!-- Residence API -->
-        <dependency>
-            <groupId>com.bekvon.bukkit</groupId>
-            <artifactId>residence</artifactId>
-            <version>5.1.1.0</version>
-            <scope>provided</scope>
-        </dependency>
-        
-        <!-- WorldGuard API (opcional, para compatibilidad adicional) -->
-        <dependency>
-            <groupId>com.sk89q.worldguard</groupId>
-            <artifactId>worldguard-bukkit</artifactId>
-            <version>7.0.9</version>
-            <scope>provided</scope>
-        </dependency>
-        
-        <!-- WorldEdit API (requerido por WorldGuard) -->
-        <dependency>
-            <groupId>com.sk89q.worldedit</groupId>
-            <artifactId>worldedit-bukkit</artifactId>
-            <version>7.2.15</version>
-            <scope>provided</scope>
-        </dependency>
-        
-        <!-- JetBrains Annotations (para @NotNull, @Nullable, etc.) -->
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>24.1.0</version>
-            <scope>provided</scope>
-        </dependency>
-        
-        <!-- Configuración con YAML -->
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>2.2</version>
-            <scope>provided</scope> <!-- Ya incluido en Spigot -->
-        </dependency>
-        
-        <!-- Base de datos H2 (para almacenamiento local) -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>2.2.224</version>
-        </dependency>
-        
-        <!-- HikariCP (pool de conexiones) -->
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>5.1.0</version>
-        </dependency>
-        
-        <!-- SLF4J (logging) -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.9</version>
-            <scope>provided</scope>
-        </dependency>
-        
-        <!-- Testing Dependencies -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-    
-    <!-- Build Configuration -->
+
     <build>
-        <finalName>${project.name}-${project.version}</finalName>
         <defaultGoal>clean package</defaultGoal>
-        
-        <!-- Recursos -->
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-                <includes>
-                    <include>**/*.yml</include>
-                    <include>**/*.yaml</include>
-                    <include>**/*.properties</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>false</filtering>
-                <excludes>
-                    <exclude>**/*.yml</exclude>
-                    <exclude>**/*.yaml</exclude>
-                    <exclude>**/*.properties</exclude>
-                </excludes>
-            </resource>
-        </resources>
-        
         <plugins>
-            <!-- Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.12.1</version>
+                <version>3.13.0</version>
                 <configuration>
-                    <source>21</source>
-                    <target>21</target>
-                    <encoding>UTF-8</encoding>
-                    <compilerArgs>
-                        <arg>--enable-preview</arg> <!-- Para características preview de Java 21 -->
-                    </compilerArgs>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                 </configuration>
             </plugin>
-            
-            <!-- Surefire Plugin (para tests) -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.3</version>
-                <configuration>
-                    <argLine>--enable-preview</argLine>
-                </configuration>
-            </plugin>
-            
-            <!-- Shade Plugin (para incluir dependencias) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.1</version>
-                <configuration>
-                    <relocations>
-                        <!-- Relocate HikariCP to avoid conflicts -->
-                        <relocation>
-                            <pattern>com.zaxxer.hikari</pattern>
-                            <shadedPattern>com.tudominio.citywars.libs.hikari</shadedPattern>
-                        </relocation>
-                        <!-- Relocate H2 Database -->
-                        <relocation>
-                            <pattern>org.h2</pattern>
-                            <shadedPattern>com.tudominio.citywars.libs.h2</shadedPattern>
-                        </relocation>
-                    </relocations>
-                    <filters>
-                        <filter>
-                            <artifact>*:*</artifact>
-                            <excludes>
-                                <exclude>META-INF/*.SF</exclude>
-                                <exclude>META-INF/*.DSA</exclude>
-                                <exclude>META-INF/*.RSA</exclude>
-                                <exclude>META-INF/MANIFEST.MF</exclude>
-                            </excludes>
-                        </filter>
-                    </filters>
-                </configuration>
+                <version>3.5.3</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -266,114 +41,50 @@
                     </execution>
                 </executions>
             </plugin>
-            
-            <!-- JAR Plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.3.0</version>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Built-By>CityWars</Built-By>
-                            <Implementation-Title>${project.name}</Implementation-Title>
-                            <Implementation-Version>${project.version}</Implementation-Version>
-                            <Multi-Release>true</Multi-Release>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
-            
-            <!-- Source Plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.3.0</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            
-            <!-- Javadoc Plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.6.3</version>
-                <configuration>
-                    <source>21</source>
-                    <additionalJOptions>
-                        <additionalJOption>--enable-preview</additionalJOption>
-                    </additionalJOptions>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            
-            <!-- Clean Plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>3.3.2</version>
-            </plugin>
-            
-            <!-- Install Plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <version>3.1.1</version>
-            </plugin>
-            
-            <!-- Deploy Plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.1.1</version>
-            </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
     </build>
-    
-    <!-- Perfiles -->
-    <profiles>
-        <!-- Perfil de desarrollo -->
-        <profile>
-            <id>dev</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <maven.test.skip>false</maven.test.skip>
-            </properties>
-        </profile>
-        
-        <!-- Perfil de producción -->
-        <profile>
-            <id>prod</id>
-            <properties>
-                <maven.test.skip>true</maven.test.skip>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <configuration>
-                            <debug>false</debug>
-                            <optimize>true</optimize>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+
+    <repositories>
+        <repository>
+            <id>papermc-repo</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+        <repository>
+            <id>sonatype</id>
+            <url>https://oss.sonatype.org/content/groups/public/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.21.5-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Residence Plugin - Instalación manual requerida -->
+        <dependency>
+            <groupId>com.bekvon.bukkit</groupId>
+            <artifactId>residence</artifactId>
+            <version>5.1.7.5</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/Residence-5.1.7.5.jar</systemPath>
+        </dependency>
+
+        <!-- GemsEconomy Plugin - Instalación manual requerida -->
+        <dependency>
+            <groupId>me.xanium</groupId>
+            <artifactId>gemseconomy</artifactId>
+            <version>4.9.2</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/GemsEconomy-4.9.2.jar</systemPath>
+        </dependency>
+    </dependencies>
 </project>

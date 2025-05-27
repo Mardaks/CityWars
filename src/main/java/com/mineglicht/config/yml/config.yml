@@ -1,0 +1,140 @@
+# ===============================================
+# CityWars Plugin - Configuración Principal
+# ===============================================
+
+# Configuraciones de Ciudad
+city:
+  # Tamaño mínimo de una ciudad (en bloques)
+  min-size: 50
+  # Tamaño máximo de una ciudad (en bloques)
+  max-size: 500
+  # Tamaño por defecto al crear una ciudad
+  default-size: 100
+  # Costo para expandir la ciudad (por bloque)
+  expansion-cost: 1000
+  # Auto-reclamar territorio al crear ciudad
+  auto-claim: true
+  # Costo para crear una nueva ciudad
+  creation-cost: 5000.0
+  # Máximo número de ciudadanos por ciudad
+  max-citizens: 50
+
+# Configuraciones de Impuestos
+tax:
+  # Tasa de impuestos (18% = 0.18)
+  rate: 0.18
+  # Hora del día para cobrar impuestos (formato 24h)
+  collection-hour: 12
+  # Notificar a ciudadanos sobre cobro de impuestos
+  notify-citizens: true
+  # Balance mínimo requerido para pagar impuestos
+  minimum-balance: 100.0
+
+# Configuraciones de Asedio
+siege:
+  # Porcentaje mínimo de defensores que deben estar conectados
+  min-defenders-percentage: 30
+  # Duración máxima del asedio en minutos
+  duration-minutes: 30
+  # Intervalo de fuegos artificiales en segundos
+  firework-interval-seconds: 60
+  # Cooldown entre asedios en horas
+  cooldown-hours: 24
+  # Tipo de economía requerida para atacar (jp, glichtcoins, glichtmines)
+  economy-type: "jp"
+  # Costo para iniciar un asedio
+  cost: 10000.0
+  # Anunciar asedios globalmente
+  announce-global: true
+
+# Configuraciones de Saqueo
+loot:
+  # Duración de la fase de saqueo en minutos
+  phase-duration-minutes: 5
+  # Porcentaje del banco de la ciudad que se roba (50% = 0.5)
+  percentage: 0.5
+  # Permitir romper bloques durante el saqueo
+  break-blocks: true
+  # Permitir abrir cofres durante el saqueo
+  open-chests: true
+  # Bloques protegidos que no se pueden romper durante el saqueo
+  protected-blocks:
+    - "BEDROCK"
+    - "BARRIER"
+    - "COMMAND_BLOCK"
+    - "STRUCTURE_BLOCK"
+
+# Configuraciones del Estandarte de Asedio
+siege-flag:
+  # Material del estandarte
+  material: "RED_BANNER"
+  # Nombre del ítem
+  name: "&c&lEstandarte de Asedio"
+  # Descripción del ítem
+  lore:
+    - "&7Coloca este estandarte en territorio enemigo"
+    - "&7para iniciar un asedio."
+    - ""
+    - "&c&l¡ADVERTENCIA!"
+    - "&7Esto iniciará una guerra."
+  # Hacer que el ítem brille
+  glowing: true
+  # ID de modelo personalizado (0 = deshabilitado)
+  custom-model-data: 0
+
+# Configuraciones de Protección
+protection:
+  # Bloquear spawn de mobs hostiles
+  spawn-mobs: true
+  # Bloquear romper bloques
+  block-break: true
+  # Bloquear colocar bloques
+  block-place: true
+  # Bloquear interacciones
+  interact: true
+  # Bloquear uso de enderpearls
+  enderpearl: true
+  # Bloquear PvP fuera de asedios
+  pvp-outside-siege: true
+
+# Configuraciones de Residence
+residence:
+  # Habilitar integración con Residence
+  integration: true
+  # Deshabilitar protecciones de Residence durante asedios
+  disable-during-siege: true
+  # Crear residences automáticamente para nuevos ciudadanos
+  auto-create: false
+  # Tamaño por defecto de las residences
+  default-size: 20
+
+# Configuraciones de Economía
+economy:
+  # Habilitar integración con GemsEconomy
+  gems-economy-integration: true
+  # Economía principal del servidor
+  primary-economy: "default"
+  # Bancos separados para cada ciudad
+  separate-city-banks: true
+  # Fondos iniciales al crear una ciudad
+  city-starting-funds: 10000.0
+
+# Configuraciones de Eventos
+events:
+  # Habilitar eventos personalizados
+  enable-custom-events: true
+  # Registrar todos los eventos en la consola
+  log-all-events: false
+  # Anunciar eventos importantes al servidor
+  broadcast-important-events: true
+
+# Configuraciones de Debug
+debug:
+  # Modo debug general
+  mode: false
+  # Debug específico para eventos de asedio
+  siege-events: false
+  # Debug específico para eventos de economía
+  economy-events: false
+  # Debug específico para eventos de ciudad
+  city-events: false

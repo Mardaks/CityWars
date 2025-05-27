@@ -17,6 +17,7 @@ import java.util.List;
  * Utilidades para el manejo de items, especialmente el estandarte de asedio
  */
 public class ItemUtils {
+
     // Keys para persistent data
     public static final String SIEGE_FLAG_KEY = "citywars_siege_flag";
     public static final String CITY_FLAG_KEY = "citywars_city_flag";
@@ -84,7 +85,7 @@ public class ItemUtils {
         );
 
         // Añadir encantamiento de brillo
-        siegeFlag.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
+        siegeFlag.addUnsafeEnchantment(Enchantment.UNBREAKING, 1);
 
         ItemMeta meta = siegeFlag.getItemMeta();
         if (meta != null) {
@@ -122,7 +123,7 @@ public class ItemUtils {
         );
 
         // Añadir encantamiento de brillo
-        cityFlag.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
+        cityFlag.addUnsafeEnchantment(Enchantment.UNBREAKING, 1);
 
         ItemMeta meta = cityFlag.getItemMeta();
         if (meta != null) {
@@ -264,7 +265,7 @@ public class ItemUtils {
     public static ItemStack addGlow(ItemStack item) {
         if (item == null) return null;
 
-        item.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
+        item.addUnsafeEnchantment(Enchantment.UNBREAKING, 1);
 
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
@@ -283,7 +284,7 @@ public class ItemUtils {
     public static ItemStack removeGlow(ItemStack item) {
         if (item == null) return null;
 
-        item.removeEnchantment(Enchantment.DURABILITY);
+        item.removeEnchantment(Enchantment.UNBREAKING);
 
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {

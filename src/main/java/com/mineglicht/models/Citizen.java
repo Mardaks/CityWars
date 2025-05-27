@@ -6,6 +6,7 @@ import java.util.UUID;
  * Representa a un ciudadano dentro del sistema CityWars
  */
 public class Citizen {
+
     private final UUID playerId;
     private UUID cityId;
     private long joinDate;

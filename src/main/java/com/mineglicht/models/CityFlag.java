@@ -5,6 +5,7 @@ package com.mineglicht.models;
  * Estas flags controlan diferentes aspectos de protección y comportamiento en el territorio de una ciudad
  */
 public class CityFlag {
+
     private final String name;
     private boolean value;
     private boolean defaultForVisitors;
