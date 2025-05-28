@@ -60,6 +60,8 @@ import java.util.logging.Level;
  * @since Java 21, Minecraft 1.21.5
  */
 public final class cityWars extends JavaPlugin {
+    //SETTINGS
+    private Settings settings;
 
     // Instancia singleton
     private static cityWars instance;
@@ -449,9 +451,19 @@ public final class cityWars extends JavaPlugin {
     // ==================== GETTERS PÚBLICOS ====================
 
     /**
+     * Obtiene la configuración del plugin
+     * Como Settings usa variables estáticas inicializadas por ConfigManager,
+     * este método facilita el acceso desde otras clases
+     * @return La clase Settings (para acceso estático a configuraciones)
+     */
+    public Class<Settings> getSettings() {
+        return Settings.class;
+    }
+
+    /**
      * Obtener la instancia del plugin
      */
-    public static CityWarsPlugin getInstance() {
+    public static cityWars getInstance() {
         return instance;
     }
 
