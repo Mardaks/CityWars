@@ -25,6 +25,7 @@ public class City {
     private int level;
     private Location center;
     private final Map<CityFlag, Boolean> flags;
+    private SiegeState siegeState; // Campo para el estado del asedio
 
     // Constructor principal para crear nueva ciudad
     public City(String name, UUID ownerUUID, World world, Vector minPoint, Vector maxPoint) {
@@ -40,6 +41,7 @@ public class City {
         this.lastTaxCollection = System.currentTimeMillis();
         this.level = 1;
         this.flags = new EnumMap<>(CityFlag.class);
+        this.siegeState = SiegeState.NONE; // Estado inicial sin asedio
         
         // Calcular centro basado en min y max points
         this.center = calculateCenter();
@@ -66,6 +68,7 @@ public class City {
         this.lastTaxCollection = System.currentTimeMillis();
         this.level = 1;
         this.flags = new EnumMap<>(CityFlag.class);
+        this.siegeState = SiegeState.NONE; // Estado inicial sin asedio
         
         // Inicializar flags con valores por defecto
         initializeDefaultFlags();
@@ -217,6 +220,24 @@ public class City {
 
     public void setLevel(int level) {
         this.level = level;
+    }
+
+    // Métodos para estado de asedio
+    public SiegeState getSiegeState() {
+        return siegeState != null ? siegeState : SiegeState.NONE;
+    }
+
+    public void setSiegeState(SiegeState siegeState) {
+        this.siegeState = siegeState;
+    }
+
+    // Métodos de utilidad para asedio
+    public boolean isUnderSiege() {
+        return siegeState == SiegeState.ACTIVE || siegeState == SiegeState.FLAG_CAPTURED;
+    }
+
+    public boolean canBeAttacked() {
+        return siegeState == SiegeState.NONE || siegeState == SiegeState.DEFENDED;
     }
 
     // Métodos de utilidad
