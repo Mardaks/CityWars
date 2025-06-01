@@ -363,10 +363,10 @@ public class RegionManager {
     }
 
      public void setSiegePvPEnabled(City city, boolean enabled) {
-        // TODO: Implementar lógica de PvP para asedios
+        // Implementar lógica de PvP para asedios
     }
 
     public void setSiegeSackingEnabled(City city, boolean enabled) {
-        // TODO: Implementar lógica de saqueo para asedios
+        //Implementar lógica de saqueo para asedios
     }
 }

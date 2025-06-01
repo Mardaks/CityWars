@@ -3,6 +3,7 @@ package com.mineglicht.task;
 import com.mineglicht.cityWars;
 import com.mineglicht.manager.SiegeManager;
 import com.mineglicht.models.City;
+import com.mineglicht.models.SiegeFlag;
 import com.mineglicht.models.SiegeState;
 import com.mineglicht.util.FireworkUtils;
 import com.mineglicht.util.MessageUtils;
@@ -12,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 
 /**
@@ -24,16 +26,18 @@ public class SiegeTimerTask extends BukkitRunnable {
     private final SiegeManager siegeManager;
     private final String cityName;
     private final Location siegeFlagLocation;
+    private final UUID siegeFlagId; // AGREGADO: ID de la bandera de asedio
     private int timeRemaining; // En segundos
     private int fireworkInterval; // En segundos
     private int timeSinceLastFirework;
     private boolean siegeEnded = false;
     
-    public SiegeTimerTask(cityWars plugin, String cityName, Location siegeFlagLocation) {
+    public SiegeTimerTask(cityWars plugin, String cityName, Location siegeFlagLocation, UUID siegeFlagId) {
         this.plugin = plugin;
         this.siegeManager = plugin.getSiegeManager();
         this.cityName = cityName;
         this.siegeFlagLocation = siegeFlagLocation;
+        this.siegeFlagId = siegeFlagId; // AGREGADO
         
         // Obtener configuraciones del archivo config.yml
         this.timeRemaining = plugin.getConfig().getInt("siege.duration-minutes", 30) * 60; // Convertir a segundos
@@ -49,16 +53,23 @@ public class SiegeTimerTask extends BukkitRunnable {
                 return;
             }
             
-            // Verificar si la ciudad aún existe y está bajo asedio
-            City city = plugin.getCityManager().getCityByName(cityName);
-            if (city == null || city.getSiegeState() != SiegeState.ACTIVE) {
-                endSiege("La ciudad ya no está bajo asedio");
+            // Verificar si el asedio aún existe
+            SiegeFlag siegeFlag = siegeManager.getSiege(siegeFlagId);
+            if (siegeFlag == null || siegeFlag.getState() != SiegeState.ACTIVE) {
+                endSiege(SiegeState.CANCELLED, "El asedio ya no está activo");
                 return;
             }
             
+            // Verificar si la ciudad aún existe
+            City city = plugin.getCityManager().getCityByName(cityName);
+            if (city == null) {
+                endSiege(SiegeState.CANCELLED, "La ciudad ya no existe");
+                return;
+            }
+
             // Verificar si el estandarte aún existe
             if (!siegeManager.isSiegeFlagAt(siegeFlagLocation)) {
-                endSiege("El estandarte de asedio ha sido destruido");
+                endSiege(SiegeState.DEFENDED, "El estandarte de asedio ha sido destruido");
                 return;
             }
             
@@ -77,7 +88,7 @@ public class SiegeTimerTask extends BukkitRunnable {
             
             // Verificar si el tiempo del asedio ha terminado
             if (timeRemaining <= 0) {
-                endSiege("El tiempo del asedio ha expirado");
+                endSiege(SiegeState.DEFENDED, "El tiempo del asedio ha expirado");
                 return;
             }
             
@@ -151,31 +162,50 @@ public class SiegeTimerTask extends BukkitRunnable {
     /**
      * Termina el asedio por tiempo expirado
      */
-    private void endSiege(String reason) {
+    private void endSiege(SiegeState endState, String reason) {
         if (siegeEnded) return;
         
         siegeEnded = true;
         
         plugin.getLogger().info(String.format("Terminando asedio de %s: %s", cityName, reason));
         
-        // Usar SiegeManager para terminar el asedio correctamente
-        boolean success = siegeManager.endSiege(cityName, reason);
+        // CORREGIDO: Usar el método correcto con UUID y SiegeState
+        siegeManager.endSiege(siegeFlagId, endState);
         
-        if (success) {
-            // Notificar a todos los jugadores involucrados
-            broadcastToCity("&a¡El asedio ha terminado! &e" + reason);
-            
-            // Notificar a los atacantes también
-            List<Player> attackers = siegeManager.getSiegeAttackers(cityName);
-            for (Player attacker : attackers) {
-                if (attacker != null && attacker.isOnline()) {
-                    MessageUtils.sendMessage(attacker, "&c¡El asedio de &e" + cityName + " &cha terminado! &f" + reason);
-                }
-            }
-        }
+        // Notificar a todos los jugadores involucrados
+        broadcastToCity("&a¡El asedio ha terminado! &e" + reason);
+        
+        // CORREGIDO: Obtener atacantes usando el objeto SiegeFlag
+        notifyAttackers(reason);
         
         // Cancelar esta tarea
         cancel();
+    }
+    
+    /**
+     * AGREGADO: Método para notificar a los atacantes
+     */
+    private void notifyAttackers(String reason) {
+        try {
+            SiegeFlag siegeFlag = siegeManager.getSiege(siegeFlagId);
+            if (siegeFlag != null) {
+                // Obtener la ciudad atacante
+                City attackingCity = plugin.getCityManager().getAllCities().stream()
+                    .filter(c -> c.getId().equals(siegeFlag.getAttackingCityId()))
+                    .findFirst().orElse(null);
+                
+                if (attackingCity != null) {
+                    List<Player> attackers = siegeManager.getCityMembers(attackingCity.getName());
+                    for (Player attacker : attackers) {
+                        if (attacker != null && attacker.isOnline()) {
+                            MessageUtils.sendMessage(attacker, "&c¡El asedio de &e" + cityName + " &cha terminado! &f" + reason);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "Error al notificar a los atacantes", e);
+        }
     }
     
     /**
@@ -198,7 +228,7 @@ public class SiegeTimerTask extends BukkitRunnable {
      * Termina el asedio manualmente (para comandos de admin)
      */
     public void forceEnd(String reason) {
-        endSiege("Terminado por administrador: " + reason);
+        endSiege(SiegeState.CANCELLED, "Terminado por administrador: " + reason);
     }
     
     /**
