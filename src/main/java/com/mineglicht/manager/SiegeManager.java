@@ -427,7 +427,7 @@ public class SiegeManager {
     /**
      * Establece cooldown entre ciudades
      */
-    private void setCooldown(UUID attackingCityId, UUID defendingCityId) {
+    public void setCooldown(UUID attackingCityId, UUID defendingCityId) {
         String key = attackingCityId + ":" + defendingCityId;
         UUID cooldownId = UUID.nameUUIDFromBytes(key.getBytes());
         long cooldownEnd = System.currentTimeMillis() + siegeCooldownTime;
@@ -702,5 +702,15 @@ public class SiegeManager {
             plugin.getLogger().warning("Error al verificar estandarte: " + e.getMessage());
             return false;
         }
+    }
+
+    public UUID getSiegeFlagIdByCity(UUID cityId) {
+        for (Map.Entry<UUID, SiegeFlag> entry : activeSieges.entrySet()) {
+            SiegeFlag flag = entry.getValue();
+            if (flag.getDefendingCityId().equals(cityId) || flag.getAttackingCityId().equals(cityId)) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 }

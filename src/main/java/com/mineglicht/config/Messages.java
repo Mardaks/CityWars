@@ -19,14 +19,28 @@ public class Messages {
     public static String PREFIX;
     public static String NO_PERMISSION;
     public static String PLAYER_NOT_FOUND;
+    public static String PLAYER_NOT_CITIZEN;
+    public static String PLAYER_COMMAND_ONLY;
+    public static String NO_CITIZENS;
     public static String COMMAND_ONLY_PLAYER;
     public static String CONFIG_RELOADED;
     public static String INVALID_ARGUMENTS;
 
+    // === MENSAJES GENERALES ===
+    public static String CITIZEN_ERROR_REGISTERED;
+    public static String CITIZEN_ADDED;
+    public static String CITIZEN_ADD_FAILED;
+    public static String CITIZEN_REMOVED;
+    public static String CITIZEN_REMOVE_FAILED;
+
     // === MENSAJES DE CIUDAD ===
     public static String CITY_CREATED;
+    public static String CITY_CREATION_FAILED;
     public static String CITY_DELETED;
+    public static String CITY_DELETION_FAILED;
     public static String CITY_NOT_FOUND;
+    public static String CITY_NOT_UNDER_SIEGE;
+    public static String CITY_UNDER_SIEGE;
     public static String CITY_ALREADY_EXISTS;
     public static String CITY_JOIN_SUCCESS;
     public static String CITY_LEAVE_SUCCESS;
@@ -42,6 +56,7 @@ public class Messages {
     // === MENSAJES DE ASEDIO ===
     public static String SIEGE_STARTED;
     public static String SIEGE_ENDED;
+    public static String SIEGE_ENDED_FAILED;
     public static String SIEGE_VICTORY;
     public static String SIEGE_DEFEAT;
     public static String SIEGE_UNDER_ATTACK;
