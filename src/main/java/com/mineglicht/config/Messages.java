@@ -27,6 +27,7 @@ public class Messages {
     public static String INVALID_ARGUMENTS;
 
     // === MENSAJES GENERALES ===
+    public static String CITIZEN_REGISTERED;
     public static String CITIZEN_ERROR_REGISTERED;
     public static String CITIZEN_ADDED;
     public static String CITIZEN_ADD_FAILED;
