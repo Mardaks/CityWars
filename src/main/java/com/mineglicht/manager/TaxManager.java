@@ -1,6 +1,7 @@
 package com.mineglicht.manager;
 
 import com.mineglicht.cityWars;
+import com.mineglicht.config.Messages;
 import com.mineglicht.models.City;
 import com.mineglicht.models.Citizen;
 import org.bukkit.Bukkit;
@@ -121,8 +122,7 @@ public class TaxManager {
             // Depositar al banco de la ciudad
             if (economyManager.depositCityBank(city, taxAmount)) {
                 lastTaxPayment.put(playerId, Instant.now().getEpochSecond());
-
-                player.sendMessage(plugin.getMessages().getTaxCollectedMessage(BigDecimal.valueOf(taxAmount)));
+                player.sendMessage(Messages.getTaxCollectedMessage(BigDecimal.valueOf(taxAmount)));
                 return true;
             } else {
                 // Devolver dinero si falla
