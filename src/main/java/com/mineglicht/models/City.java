@@ -1,6 +1,5 @@
 package com.mineglicht.models;
 
-import com.mineglicht.manager.CitizenManager;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;

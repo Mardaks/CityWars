@@ -158,10 +158,10 @@ public class cityWars extends JavaPlugin {
             configManager.loadConfig();
             
             // Inicializar Messages
-            Messages.loadMessages(configManager);
+            Messages.initialize();
             
             // Inicializar Settings
-            Settings.loadSettings(configManager);
+            Settings.initialize();;
             
             getLogger().info("§a✓ Configuración inicializada correctamente");
             return true;
@@ -503,12 +503,4 @@ public class cityWars extends JavaPlugin {
     public boolean isFullyLoaded() {
         return fullyLoaded;
     }
-
-    /**
-     * Obtiene la instancia de Messages para acceso centralizado
-     * @return ConfigManager para acceso a mensajes configurables
-     */
-    public Messages getMessages() {
-    return this.getMessages(); // NO this.configManager
-}
 }
