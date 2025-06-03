@@ -18,6 +18,8 @@ city:
   not-found: "&cLa ciudad '&e{city}&c' no existe."
   already-exists: "&cYa existe una ciudad con ese nombre."
   join-success: "&a¡Te has unido a la ciudad '&e{city}&a'!"
+  member-joined: "&a¡{player} se ha conectado!"
+  member-left: "&c¡{player} se ha desconectado!"
   leave-success: "&a¡Has abandonado la ciudad '&e{city}&a'!"
   already-member: "&cYa eres miembro de una ciudad."
   not-member: "&cNo eres miembro de ninguna ciudad."
@@ -52,6 +54,8 @@ siege:
   flag-destroyed: "&a¡Bandera de asedio destruida!"
   insufficient-funds: "&cNo tienes suficientes &e{economy} &cpara iniciar un asedio."
   invalid-location: "&cNo puedes colocar la bandera aquí."
+  member-disconnect: "&cEl jugador &l{player} &cse ha desconecto en el asedio!"
+  member-reconnected-siege: "&aEl jugador &l{player} &ase ha reconectado en el asedio!"
 
 # Mensajes de Saqueo
 loot:

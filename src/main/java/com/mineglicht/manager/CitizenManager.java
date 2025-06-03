@@ -3,10 +3,14 @@ package com.mineglicht.manager;
 import com.mineglicht.cityWars;
 import com.mineglicht.models.City;
 import com.mineglicht.models.Citizen;
+import com.mineglicht.models.SiegeState;
+import com.mineglicht.util.MessageUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.Location;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +28,8 @@ public class CitizenManager {
     private final File citizensFile;
     private FileConfiguration citizensConfig;
     private final CityManager cityManager;
+    private final Map<UUID, BukkitRunnable> disconnectingPlayers = new HashMap<>(); // Jugadores en proceso de desconexión
+    private final Map<UUID, Location> playerLastLocations = new HashMap<>(); // Últimas ubicaciones de jugadores
 
     public CitizenManager(cityWars plugin, CityManager cityManager) {
         this.plugin = plugin;
@@ -46,7 +52,7 @@ public class CitizenManager {
         if (city == null || playerId == null) {
             return false;
         }
-        
+
         // Check if player is already in a city
         Citizen existingCitizen = getCitizen(playerId);
         if (existingCitizen != null) {
@@ -347,6 +353,190 @@ public class CitizenManager {
             citizensConfig.save(citizensFile);
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to save citizens", e);
+        }
+    }
+
+    /**
+     * Load or create citizen for a player
+     *
+     * @param playerId UUID del jugador
+     * @return true si el cuidadano ya existia, false si se creo uno nuevo
+     */
+    public boolean loadOrCreateCitizen(UUID playerId) {
+        return citizens.containsKey(playerId);
+    }
+
+    /**
+     * Create a new citizen for a player
+     *
+     * @param playerId UUID del jugador
+     * @param playerName Nombre del jugador
+     */
+    public void createNewCitizen(UUID playerId, String playerName) {
+        // Por ahora solo registramos al jugador sin cuidad
+        plugin.getLogger().info("Nuevo jugador registrado: " + " (" + playerId + ")");
+    }
+
+    /**
+     * Increase the online citizen counter for a city
+     *
+     * @param cityId UUID de la ciudad
+     */
+    public void incrementCityOnlineCount(UUID cityId) {
+        Set<UUID> onlineCitizens = getOnlineCitizensInCity(cityId);
+        plugin.getLogger().info("Ciudad: " + cityId + ", ahora tiene " + onlineCitizens.size() + " cuidadanos conectados");
+    }
+
+    /**
+     * Decrementa el contador de ciudadanos online para una ciudad.
+     *
+     * @param cityId UUID de la ciudad
+     */
+    public void decrementCityOnlineCount(UUID cityId) {
+        Set<UUID> onlineCitizens = getOnlineCitizensInCity(cityId);
+        plugin.getLogger().info("Cuidad: " + cityId + " ahora tiene " + onlineCitizens.size() + " cuidadanos conectados");
+    }
+
+    /**
+     * Verifica la viabilidad del asedio de una ciudad cuando un jugador se desconecta
+     * Si la ciudad está bajo asedio, el jugador no puede desconectarse inmediatamente.
+     * Su personaje permanece en el juego por 2 minutos antes de desaparecer.
+     *
+     * @param cityId UUID de la ciudad
+     * @param player El jugador que intenta desconectarse
+     * @return true si el jugador puede desconectarse inmediatamente, false si debe esperar
+     */
+    public boolean checkCitySiegeViability(UUID cityId, Player player) {
+        City city = cityManager.getCity(cityId);
+        if (city == null) {
+            return true; // Si no hay ciudad, permite la desconexión
+        }
+
+        // Verificar si la ciudad está bajo asedio usando el enum SiegeState
+        SiegeState siegeState = city.getSiegeState();
+        if (!siegeState.isActive()) { // Verifica si es el estado de Asedio es distinto de isActive()
+            return true; // Si no está bajo asedio activo, permite desconexión normal
+        }
+
+        // La ciudad está bajo asedio - implementar logica de desconexión con delay
+        handleSiegeDisconnection(player);
+        return false; // No permite desconexión inmediata
+    }
+
+    /**
+     * Maneja la desconexión de un jugador durante un asedio
+     * El personaje permanece en el juego por 2 minutos antes de desaparecer.
+     *
+     * @param player El jugador que se está desconectando
+     */
+    private void handleSiegeDisconnection(Player player) {
+        UUID playerId = player.getUniqueId();
+
+        // Cancelar cualquier tarea de desconexión previa para este jugador
+        BukkitRunnable existingTask = disconnectingPlayers.get(playerId);
+        if (existingTask != null) {
+            existingTask.cancel();
+        }
+
+        // Guardar la ubicacion del jugador
+        playerLastLocations.put(playerId, player.getLocation());
+
+        // Enviar mensaje al jugador
+        player.sendMessage("§c¡Tu ciudad está bajo asedio! Tu personaje permanecerá en el juego por 2 minutos.");
+
+        // Crear tarea para hacer desaparecer al jugador después de 2 minutos
+        BukkitRunnable disconnectTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                // Remover al jugador del mapa de desconexiones
+                disconnectingPlayers.remove(playerId);
+                playerLastLocations.remove(playerId);
+
+                // Si el jugador sigue online, forzar desconexión
+                Player onlinePlayer = Bukkit.getPlayer(playerId);
+                if (onlinePlayer != null && onlinePlayer.isOnline()) {
+                    onlinePlayer.kickPlayer("§cTu tiempo de permanencia durante el asedio ha terminado.");
+                }
+
+                plugin.getLogger().info("Jugador " + player.getName() + " ha sido removido del asedio después de 2 minutos.");
+            }
+        };
+
+        // Programar la tarea para ejecutarse en 2 minutos (240 ticks - 120 segundos)
+        disconnectTask.runTaskLater(plugin, 2400L);
+        disconnectingPlayers.put(playerId, disconnectTask);
+
+        // Notificar a los miembros de la ciudad
+        Citizen citizen = getCitizen(playerId);
+        if (citizen != null) {
+            City city = cityManager.getCity(citizen.getCityId());
+            if (city != null) {
+                MessageUtils.sendToCityMembers(this, city.getId(),
+                        MessageUtils.formatMessage("siege.member-disconnect",
+                                "%player%", player.getName()));
+            }
+        }
+    }
+
+    /**
+     * Verifica si un jugador está en proceso de desconexión durante un asedio.
+     *
+     * @param playerId UUID del jugador
+     * @return true si el jugador está en proceso de desconexión
+     */
+    public boolean isPlayerDisconnecting(UUID playerId) {
+        return disconnectingPlayers.containsKey(playerId);
+    }
+
+    /**
+     * Cancela el proceso de desconexión de un jugador si se reconecta durante el asedio.
+     *
+     * @param playerId UUID del jugador
+     */
+    public void cancelDisconnection(UUID playerId) {
+        BukkitRunnable task = disconnectingPlayers.remove(playerId);
+        if (task != null) {
+            task.cancel();
+            playerLastLocations.remove(playerId);
+        }
+    }
+
+    /**
+     * Obtiene la última ubicación guardad de un jugador.
+     * Esta ubicación se guarda cuando el jugador se desconecta durante un asedio
+     *
+     * @param playerId UUID del jugador
+     * @return La última ubicación del jugador o null si no hay ninguna guardada
+     */
+    public Location getPlayerLastLocation (UUID playerId) {
+        return playerLastLocations.get(playerId);
+    }
+
+    /**
+     * Guarda los datos de un ciudadano específico
+     *
+     * @param playerId UUID del jugador cuyos datos se van a guardar
+     */
+    public void saveCitizens(UUID playerId) {
+        Citizen citizen = getCitizen(playerId);
+        if (citizen == null) {
+            return;
+        }
+
+        // Cargar configuration actual
+        if (citizensConfig == null) {
+            citizensConfig = YamlConfiguration.loadConfiguration(citizensFile);
+        }
+
+        String playerIdStr = playerId.toString();
+        citizensConfig.set(playerIdStr + ".cityId", citizen.getCityId().toString());
+        citizensConfig.set(playerIdStr + ".joinDate", citizen.getJoinDate());
+
+        try {
+            citizensConfig.save(citizensFile);
+            plugin.getLogger().info("Datos del ciudadano " + playerId + " guardados correctamente.");
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.SEVERE, "Error al guardar datos del ciudadano: " + playerId, e);
         }
     }
 }
