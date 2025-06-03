@@ -4,48 +4,51 @@ package com.mineglicht.models;
  * Representa una bandera de protección para ciudades
  * Estas flags controlan diferentes aspectos de protección y comportamiento en el territorio de una ciudad
  */
-public class CityFlag {
+public enum CityFlag {
+    
+    // Flags de protección básicas
+    PREVENT_MOB_SPAWN("prevent-mob-spawn", true, false, true, true, true, false),
+    PREVENT_INTERACTION("prevent-interaction", true, false, true, true, true, false),
+    PREVENT_BLOCK_PLACE("prevent-block-place", true, false, true, true, true, false),
+    PREVENT_BLOCK_BREAK("prevent-block-break", true, false, true, true, true, false),
+    PREVENT_ENDERPEARL("prevent-enderpearl", true, false, true, true, true, false),
+    
+    // Flags de PvP y combate
+    PVP("pvp", false, false, false, false, false, true),
+    PREVENT_EXPLOSION("prevent-explosion", true, true, true, true, true, false),
+    
+    // Flags de acceso y construcción
+    ALLOW_VISITORS("allow-visitors", true, true, false, true, true, false),
+    PUBLIC_BUILD("public-build", false, true, false, true, true, false),
+    
+    // Flags económicas
+    ALLOW_TRADE("allow-trade", true, true, true, true, true, false),
+    TAX_ENABLED("tax-enabled", true, false, true, true, true, false);
 
     private final String name;
-    private boolean value;
-    private boolean defaultForVisitors;
-    private boolean defaultForCitizens;
-    private boolean defaultForOfficers;
-    private boolean defaultForOwner;
-    private boolean lockedForSiege; // Si está bloqueada durante un asedio
+    private final boolean defaultValue;
+    private final boolean defaultForVisitors;
+    private final boolean defaultForCitizens;
+    private final boolean defaultForOfficers;
+    private final boolean defaultForOwner;
+    private final boolean lockedForSiege;
 
     /**
-     * Constructor simple para crear una bandera con un valor por defecto
+     * Constructor para crear una bandera con configuración completa
      *
      * @param name Nombre de la bandera
-     * @param value Valor por defecto
-     */
-    public CityFlag(String name, boolean value) {
-        this.name = name;
-        this.value = value;
-        this.defaultForVisitors = false;
-        this.defaultForCitizens = true;
-        this.defaultForOfficers = true;
-        this.defaultForOwner = true;
-        this.lockedForSiege = true;
-    }
-
-    /**
-     * Constructor completo para crear una bandera con configuración detallada
-     *
-     * @param name Nombre de la bandera
-     * @param value Valor general por defecto
+     * @param defaultValue Valor general por defecto
      * @param defaultForVisitors Valor por defecto para visitantes
      * @param defaultForCitizens Valor por defecto para ciudadanos
      * @param defaultForOfficers Valor por defecto para oficiales
      * @param defaultForOwner Valor por defecto para el dueño
      * @param lockedForSiege Si la bandera se bloquea durante un asedio
      */
-    public CityFlag(String name, boolean value, boolean defaultForVisitors,
-                    boolean defaultForCitizens, boolean defaultForOfficers,
-                    boolean defaultForOwner, boolean lockedForSiege) {
+    CityFlag(String name, boolean defaultValue, boolean defaultForVisitors,
+             boolean defaultForCitizens, boolean defaultForOfficers,
+             boolean defaultForOwner, boolean lockedForSiege) {
         this.name = name;
-        this.value = value;
+        this.defaultValue = defaultValue;
         this.defaultForVisitors = defaultForVisitors;
         this.defaultForCitizens = defaultForCitizens;
         this.defaultForOfficers = defaultForOfficers;
@@ -76,77 +79,51 @@ public class CityFlag {
     }
 
     /**
-     * Prepara la bandera para el modo asedio si corresponde
+     * Obtiene el valor que debe tener esta flag durante un asedio
      *
-     * @param siegeMode Si se está en modo asedio
-     * @return El valor anterior de la bandera (para restaurarlo después)
+     * @return El valor de la flag durante asedio
      */
-    public boolean prepareSiegeMode(boolean siegeMode) {
-        boolean previousValue = value;
-
-        if (lockedForSiege && siegeMode) {
-            // Durante el asedio, la bandera se configura según lo definido en la lógica del juego
-            // Por ejemplo, PvP se activa en asedio
-            if (name.equalsIgnoreCase("pvp")) {
-                value = true;
+    public boolean getSiegeValue() {
+        if (lockedForSiege) {
+            switch (this) {
+                case PVP:
+                    return true; // PvP se activa durante asedio
+                case PREVENT_BLOCK_BREAK:
+                case PREVENT_BLOCK_PLACE:
+                    return false; // Se permite construcción/destrucción durante asedio
+                default:
+                    return defaultValue;
             }
-            // Block-break y block-place podrían habilitarse para asediantes durante la captura
         }
-
-        return previousValue;
+        return defaultValue;
     }
 
-    // Getters y setters
-
+    // Getters
     public String getName() {
         return name;
     }
 
-    public boolean getValue() {
-        return value;
-    }
-
-    public void setValue(boolean value) {
-        this.value = value;
+    public boolean getDefaultValue() {
+        return defaultValue;
     }
 
     public boolean isDefaultForVisitors() {
         return defaultForVisitors;
     }
 
-    public void setDefaultForVisitors(boolean defaultForVisitors) {
-        this.defaultForVisitors = defaultForVisitors;
-    }
-
     public boolean isDefaultForCitizens() {
         return defaultForCitizens;
-    }
-
-    public void setDefaultForCitizens(boolean defaultForCitizens) {
-        this.defaultForCitizens = defaultForCitizens;
     }
 
     public boolean isDefaultForOfficers() {
         return defaultForOfficers;
     }
 
-    public void setDefaultForOfficers(boolean defaultForOfficers) {
-        this.defaultForOfficers = defaultForOfficers;
-    }
-
     public boolean isDefaultForOwner() {
         return defaultForOwner;
     }
 
-    public void setDefaultForOwner(boolean defaultForOwner) {
-        this.defaultForOwner = defaultForOwner;
-    }
-
     public boolean isLockedForSiege() {
         return lockedForSiege;
-    }
-
-    public void setLockedForSiege(boolean lockedForSiege) {
-        this.lockedForSiege = lockedForSiege;
     }
 }

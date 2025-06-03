@@ -1,34 +1,23 @@
 package com.mineglicht;
 
 import com.mineglicht.api.CityWarsAPI;
-import com.mineglicht.command.AdminCommands;
-import com.mineglicht.command.CitizenCommands;
-import com.mineglicht.command.CityCommands;
-import com.mineglicht.command.SiegeCommands;
+import com.mineglicht.commands.AdminCommand;
+import com.mineglicht.commands.CitizenCommand;
 import com.mineglicht.config.ConfigManager;
 import com.mineglicht.config.Messages;
 import com.mineglicht.config.Settings;
 import com.mineglicht.integration.GemsEconomyIntegration;
 import com.mineglicht.integration.ResidenceIntegration;
-import com.mineglicht.integration.ProtectorIntegration;
-import com.mineglicht.listener.BlockListener;
-import com.mineglicht.listener.CityListener;
-import com.mineglicht.listener.PlayerListener;
-import com.mineglicht.listener.ProtectionListener;
-import com.mineglicht.listener.SiegeListener;
 import com.mineglicht.manager.CityManager;
 import com.mineglicht.manager.CitizenManager;
 import com.mineglicht.manager.EconomyManager;
 import com.mineglicht.manager.RegionManager;
 import com.mineglicht.manager.SiegeManager;
-import com.mineglicht.manager.TaxManager;
 import com.mineglicht.models.Citizen;
 import com.mineglicht.models.City;
 import com.mineglicht.models.SiegeState;
 import com.mineglicht.task.SiegeCooldownTask;
 import com.mineglicht.task.SiegeTimerTask;
-import com.mineglicht.task.TaxCollectionTask;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -60,6 +49,8 @@ import java.util.logging.Level;
  * @since Java 21, Minecraft 1.21.5
  */
 public final class cityWars extends JavaPlugin {
+    //SETTINGS
+    private Settings settings;
 
     // Instancia singleton
     private static cityWars instance;
@@ -79,7 +70,7 @@ public final class cityWars extends JavaPlugin {
     private ProtectorIntegration protectorIntegration;
 
     // Comandos
-    private AdminCommands adminCommands;
+    private AdminCommand adminCommands;
     private CitizenCommands citizenCommands;
     private CityCommands cityCommands;
     private SiegeCommands siegeCommands;
@@ -259,7 +250,7 @@ public final class cityWars extends JavaPlugin {
      * Registrar comandos del plugin
      */
     private void registerCommands() {
-        adminCommands = new AdminCommands(this);
+        adminCommands = new AdminCommand(this);
         citizenCommands = new CitizenCommands(this);
         cityCommands = new CityCommands(this);
         siegeCommands = new SiegeCommands(this);
@@ -449,9 +440,19 @@ public final class cityWars extends JavaPlugin {
     // ==================== GETTERS PÚBLICOS ====================
 
     /**
+     * Obtiene la configuración del plugin
+     * Como Settings usa variables estáticas inicializadas por ConfigManager,
+     * este método facilita el acceso desde otras clases
+     * @return La clase Settings (para acceso estático a configuraciones)
+     */
+    public Class<Settings> getSettings() {
+        return Settings.class;
+    }
+
+    /**
      * Obtener la instancia del plugin
      */
-    public static CityWarsPlugin getInstance() {
+    public static cityWars getInstance() {
         return instance;
     }
 

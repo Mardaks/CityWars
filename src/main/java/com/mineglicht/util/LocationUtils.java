@@ -3,6 +3,7 @@ package com.mineglicht.util;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,34 +31,40 @@ public class LocationUtils {
      * Deserializa una Location desde un Map o ConfigurationSection
      */
     public static Location deserializeLocation(Object obj) {
-        if (obj == null) return null;
+    if (obj == null) return null;
 
-        Map<String, Object> map;
-        if (obj instanceof ConfigurationSection) {
-            ConfigurationSection section = (ConfigurationSection) obj;
-            map = section.getValues(false);
-        } else if (obj instanceof Map) {
-            map = (Map<String, Object>) obj;
-        } else {
-            return null;
-        }
-
+    Map<String, Object> map;
+    if (obj instanceof ConfigurationSection) {
+        ConfigurationSection section = (ConfigurationSection) obj;
+        map = section.getValues(false);
+    } else if (obj instanceof Map<?, ?>) {
         try {
-            String worldName = (String) map.get("world");
-            double x = getDouble(map.get("x"));
-            double y = getDouble(map.get("y"));
-            double z = getDouble(map.get("z"));
-            float yaw = getFloat(map.get("yaw"));
-            float pitch = getFloat(map.get("pitch"));
-
-            World world = org.bukkit.Bukkit.getWorld(worldName);
-            if (world == null) return null;
-
-            return new Location(world, x, y, z, yaw, pitch);
-        } catch (Exception e) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> uncheckedMap = (Map<String, Object>) obj;
+            map = uncheckedMap;
+        } catch (ClassCastException e) {
             return null;
         }
+    } else {
+        return null;
     }
+
+    try {
+        String worldName = (String) map.get("world");
+        double x = getDouble(map.get("x"));
+        double y = getDouble(map.get("y"));
+        double z = getDouble(map.get("z"));
+        float yaw = getFloat(map.get("yaw"));
+        float pitch = getFloat(map.get("pitch"));
+
+        World world = org.bukkit.Bukkit.getWorld(worldName);
+        if (world == null) return null;
+
+        return new Location(world, x, y, z, yaw, pitch);
+    } catch (Exception e) {
+        return null;
+    }
+}
 
     /**
      * Calcula la distancia 2D entre dos ubicaciones (ignorando Y)
@@ -283,4 +290,37 @@ public class LocationUtils {
         }
         return Float.parseFloat(obj.toString());
     }
+
+
+    /**
+ * Convierte un Vector a string (formato: x,y,z)
+ */
+public static String vectorToString(Vector vector) {
+    if (vector == null) return "null";
+    
+    return String.format("%.1f,%.1f,%.1f", 
+            vector.getX(), 
+            vector.getY(), 
+            vector.getZ());
+}
+
+/**
+ * Convierte un string a Vector (formato: x,y,z)
+ */
+public static Vector stringToVector(String str) {
+    if (str == null || str.isEmpty() || str.equals("null")) return null;
+    
+    String[] parts = str.split(",");
+    if (parts.length < 3) return null;
+    
+    try {
+        double x = Double.parseDouble(parts[0]);
+        double y = Double.parseDouble(parts[1]);
+        double z = Double.parseDouble(parts[2]);
+        
+        return new Vector(x, y, z);
+    } catch (NumberFormatException e) {
+        return null;
+    }
+}
 }

@@ -16,6 +16,8 @@ public class Settings {
     // === CONFIGURACIONES DE CIUDAD ===
     public static int CITY_MIN_SIZE;
     public static int CITY_MAX_SIZE;
+    public static int MIN_REGION_Y;
+    public static int MAX_REGION_Y;
     public static int CITY_DEFAULT_SIZE;
     public static int CITY_EXPANSION_COST;
     public static boolean CITY_AUTO_CLAIM;
@@ -84,6 +86,7 @@ public class Settings {
 
     /**
      * Inicializa todas las configuraciones desde el archivo config.yml
+     * 
      * @param configuration Configuración cargada del archivo
      */
     public static void initialize(FileConfiguration configuration) {
@@ -98,6 +101,8 @@ public class Settings {
         // Configuraciones de ciudad
         CITY_MIN_SIZE = config.getInt("city.min-size", 50);
         CITY_MAX_SIZE = config.getInt("city.max-size", 500);
+        MIN_REGION_Y = config.getInt("region.min-y", -64); // Valor por defecto para 1.18+
+        MAX_REGION_Y = config.getInt("region.max-y", 320); // Valor por defecto para 1.18+
         CITY_DEFAULT_SIZE = config.getInt("city.default-size", 100);
         CITY_EXPANSION_COST = config.getInt("city.expansion-cost", 1000);
         CITY_AUTO_CLAIM = config.getBoolean("city.auto-claim", true);
@@ -167,6 +172,7 @@ public class Settings {
 
     /**
      * Valida que todas las configuraciones sean válidas
+     * 
      * @return true si las configuraciones son válidas
      */
     public static boolean validateSettings() {
@@ -219,12 +225,14 @@ public class Settings {
 
     /**
      * Obtiene un valor de configuración personalizado
-     * @param path Ruta de la configuración
+     * 
+     * @param path         Ruta de la configuración
      * @param defaultValue Valor por defecto
      * @return Valor de la configuración
      */
     public static <T> T get(String path, T defaultValue) {
-        if (config == null) return defaultValue;
+        if (config == null)
+            return defaultValue;
 
         Object value = config.get(path, defaultValue);
         try {

@@ -2,12 +2,10 @@ package com.mineglicht.integration;
 
 import me.xanium.gemseconomy.api.GemsEconomyAPI;
 import me.xanium.gemseconomy.currency.Currency;
-import me.xanium.gemseconomy.account.Account;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -96,12 +94,12 @@ public class GemsEconomyIntegration {
 
         try {
             Currency currency = getCurrency(currencyName);
-            if (currency == null) return 0.0;
-
-            Account account = gemsAPI.getAccount(playerUUID);
-            if (account == null) return 0.0;
-
-            return account.getBalance(currency).doubleValue();
+            if (currency == null) {
+                // Si no se especifica moneda, usar la predeterminada
+                return gemsAPI.getBalance(playerUUID);
+            }
+            
+            return gemsAPI.getBalance(playerUUID, currency);
         } catch (Exception e) {
             plugin.getLogger().warning("Error al obtener balance: " + e.getMessage());
             return 0.0;
@@ -119,7 +117,7 @@ public class GemsEconomyIntegration {
     }
 
     /**
-     * Establece el balance de un jugador
+     * Establece el balance de un jugador (mediante withdraw/deposit)
      * @param playerUUID UUID del jugador
      * @param currencyName Nombre de la moneda
      * @param amount Cantidad a establecer
@@ -129,14 +127,20 @@ public class GemsEconomyIntegration {
         if (!isEnabled) return false;
 
         try {
-            Currency currency = getCurrency(currencyName);
-            if (currency == null) return false;
-
-            Account account = gemsAPI.getAccount(playerUUID);
-            if (account == null) return false;
-
-            account.setBalance(currency, BigDecimal.valueOf(amount));
-            return true;
+            double currentBalance = getBalance(playerUUID, currencyName);
+            
+            if (currentBalance == amount) {
+                return true; // Ya tiene el balance correcto
+            }
+            
+            // Si necesita más dinero, depositar la diferencia
+            if (currentBalance < amount) {
+                return addBalance(playerUUID, currencyName, amount - currentBalance);
+            } 
+            // Si tiene más dinero, retirar la diferencia
+            else {
+                return removeBalance(playerUUID, currencyName, currentBalance - amount);
+            }
         } catch (Exception e) {
             plugin.getLogger().warning("Error al establecer balance: " + e.getMessage());
             return false;
@@ -155,14 +159,19 @@ public class GemsEconomyIntegration {
 
         try {
             Currency currency = getCurrency(currencyName);
-            if (currency == null) return false;
-
-            Account account = gemsAPI.getAccount(playerUUID);
-            if (account == null) return false;
-
-            BigDecimal currentBalance = account.getBalance(currency);
-            account.setBalance(currency, currentBalance.add(BigDecimal.valueOf(amount)));
-            return true;
+            double balanceBefore = getBalance(playerUUID, currencyName);
+            
+            if (currency == null) {
+                // Usar moneda predeterminada
+                gemsAPI.deposit(playerUUID, amount);
+            } else {
+                gemsAPI.deposit(playerUUID, amount, currency);
+            }
+            
+            // Verificar si el balance cambió correctamente
+            double balanceAfter = getBalance(playerUUID, currencyName);
+            return Math.abs((balanceAfter - balanceBefore) - amount) < 0.01; // Tolerancia para decimales
+            
         } catch (Exception e) {
             plugin.getLogger().warning("Error al añadir balance: " + e.getMessage());
             return false;
@@ -185,14 +194,19 @@ public class GemsEconomyIntegration {
 
         try {
             Currency currency = getCurrency(currencyName);
-            if (currency == null) return false;
-
-            Account account = gemsAPI.getAccount(playerUUID);
-            if (account == null) return false;
-
-            BigDecimal currentBalance = account.getBalance(currency);
-            account.setBalance(currency, currentBalance.subtract(BigDecimal.valueOf(amount)));
-            return true;
+            double balanceBefore = getBalance(playerUUID, currencyName);
+            
+            if (currency == null) {
+                // Usar moneda predeterminada
+                gemsAPI.withdraw(playerUUID, amount);
+            } else {
+                gemsAPI.withdraw(playerUUID, amount, currency);
+            }
+            
+            // Verificar si el balance cambió correctamente
+            double balanceAfter = getBalance(playerUUID, currencyName);
+            return Math.abs((balanceBefore - balanceAfter) - amount) < 0.01; // Tolerancia para decimales
+            
         } catch (Exception e) {
             plugin.getLogger().warning("Error al remover balance: " + e.getMessage());
             return false;
@@ -340,7 +354,12 @@ public class GemsEconomyIntegration {
             return String.format("%.2f %s", amount, currencyName);
         }
 
-        return currency.getSymbol() + String.format("%.2f", amount);
+        // Verificar si la moneda tiene métodos para formatear
+        try {
+            return currency.getSymbol() + String.format("%.2f", amount);
+        } catch (Exception e) {
+            return String.format("%.2f %s", amount, currencyName);
+        }
     }
 
     /**

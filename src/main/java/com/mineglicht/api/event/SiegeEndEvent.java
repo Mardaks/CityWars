@@ -1,7 +1,6 @@
 package com.mineglicht.api.event;
 
 import com.mineglicht.models.City;
-import com.mineglicht.models.SiegeState;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
