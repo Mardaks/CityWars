@@ -444,8 +444,7 @@ public class Messages {
      * @param fadeOut      Tiempo de desaparición (ticks)
      * @param placeholders Placeholders a reemplazar
      */
-    public static void sendTitle(Player player, String title, String subtitle, int fadeIn, int stay, int fadeOut,
-                                 String... placeholders) {
+    public static void sendTitle(Player player, String title, String subtitle, int fadeIn, int stay, int fadeOut, String... placeholders) {
         if (player != null && player.isOnline()) {
             String processedTitle = replacePlaceholders(title, placeholders);
             String processedSubtitle = replacePlaceholders(subtitle, placeholders);
@@ -471,9 +470,9 @@ public class Messages {
      * @return Mensaje de impuestos cobrados con placeholders reemplazados
      */
     public static String getTaxCollectedMessage(BigDecimal amount, String economy) {
-        return replacePlaceholders(TAX_COLLECTED,
-                "amount", amount.toString(),
-                "economy", economy);
+        return replacePlaceholders(TAX_COLLECTED, 
+            "amount", amount.toString(), 
+            "economy", economy);
     }
 
     /**
