@@ -294,7 +294,7 @@ public class CitizenManager {
     /**
      * Loads citizens from the configuration file.
      */
-    private void loadCitizens() {
+    public void loadCitizens() {
         citizens.clear();
         cityToCitizens.clear();
         

@@ -37,7 +37,7 @@ public class RegionManager {
     /**
      * Carga todas las regiones de ciudades desde la configuración
      */
-    private void loadRegions() {
+    public void loadRegions() {
         FileConfiguration config = plugin.getConfig();
         if (config == null)
             return;

@@ -1,6 +1,7 @@
 package com.mineglicht;
 
 import com.mineglicht.api.CityWarsAPI;
+import com.mineglicht.api.CityWarsAPIImpl;
 import com.mineglicht.commands.*;
 import com.mineglicht.config.*;
 import com.mineglicht.integration.*;
@@ -9,6 +10,7 @@ import com.mineglicht.manager.*;
 import com.mineglicht.task.*;
 
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -158,10 +160,10 @@ public class cityWars extends JavaPlugin {
             configManager.loadConfig();
             
             // Inicializar Messages
-            Messages.loadMessages(configManager);
+            Messages.initialize(configManager.getMessagesConfig());
             
             // Inicializar Settings
-            Settings.loadSettings(configManager);
+            Settings.initialize(configManager.getConfig());
             
             getLogger().info("§a✓ Configuración inicializada correctamente");
             return true;
@@ -183,8 +185,8 @@ public class cityWars extends JavaPlugin {
             
             // GemsEconomy (CRÍTICO)
             if (pm.getPlugin("GemsEconomy") != null) {
-                gemsEconomyIntegration = new GemsEconomyIntegration();
-                if (gemsEconomyIntegration.initialize()) {
+                gemsEconomyIntegration = new GemsEconomyIntegration(this);
+                if (gemsEconomyIntegration.isEnabled()) {
                     getLogger().info("§a✓ GemsEconomy integrado correctamente");
                 } else {
                     getLogger().severe("§c✗ Error al integrar GemsEconomy - Plugin crítico");
@@ -197,8 +199,8 @@ public class cityWars extends JavaPlugin {
             
             // Residence (OPCIONAL)
             if (pm.getPlugin("Residence") != null) {
-                residenceIntegration = new ResidenceIntegration();
-                if (residenceIntegration.initialize()) {
+                residenceIntegration = new ResidenceIntegration(this);
+                if (residenceIntegration.isEnabled()) {
                     getLogger().info("§a✓ Residence integrado correctamente");
                 } else {
                     getLogger().warning("§e⚠ Error al integrar Residence - Continuando sin integración");
@@ -227,8 +229,8 @@ public class cityWars extends JavaPlugin {
             regionManager = new RegionManager(this);
             cityManager = new CityManager(this, economyManager, regionManager);
             citizenManager = new CitizenManager(this, cityManager);
-            siegeManager = new SiegeManager(this, cityManager, citizenManager, economyManager);
-            taxManager = new TaxManager(this, economyManager, citizenManager);
+            siegeManager = new SiegeManager(this, cityManager, economyManager, regionManager, citizenManager);
+            taxManager = new TaxManager(this, cityManager, citizenManager, economyManager);
             
             getLogger().info("§a✓ Managers inicializados correctamente");
             return true;
@@ -251,6 +253,7 @@ public class cityWars extends JavaPlugin {
             cityManager.loadCities();
             citizenManager.loadCitizens();
             economyManager.loadEconomyData();
+            siegeManager.loadCooldowns();
             
             getLogger().info("§a✓ Datos cargados correctamente");
             
@@ -315,7 +318,7 @@ public class cityWars extends JavaPlugin {
         try {
             getLogger().info("§6Inicializando API...");
             
-            api = new CityWarsAPI(this);
+            api = new CityWarsAPIImpl();
             
             getLogger().info("§a✓ API inicializada correctamente");
             
@@ -339,23 +342,7 @@ public class cityWars extends JavaPlugin {
                 taxInterval,
                 taxInterval
             );
-            
-            // Tarea de temporizador de asedio (cada segundo)
-            siegeTimerTask = Bukkit.getScheduler().runTaskTimer(
-                this,
-                new SiegeTimerTask(this, siegeManager),
-                20L,
-                20L
-            );
-            
-            // Tarea de cooldown de asedio (cada 5 minutos)
-            siegeCooldownTask = Bukkit.getScheduler().runTaskTimer(
-                this,
-                new SiegeCooldownTask(this, siegeManager),
-                6000L,
-                6000L
-            );
-            
+
             getLogger().info("§a✓ Tareas programadas iniciadas correctamente");
             
         } catch (Exception e) {
@@ -400,6 +387,7 @@ public class cityWars extends JavaPlugin {
             citizenManager.saveCitizens();
             regionManager.saveRegions();
             economyManager.saveEconomyData();
+            siegeManager.saveCooldowns();
             
             getLogger().info("§a✓ Datos guardados correctamente");
             
@@ -439,8 +427,8 @@ public class cityWars extends JavaPlugin {
             
             // Recargar configuración
             configManager.reloadConfig();
-            Messages.loadMessages(configManager);
-            Settings.loadSettings(configManager);
+            Messages.initialize(configManager.getMessagesConfig());
+            Settings.initialize(configManager.getConfig());
             
             // Recargar datos
             loadData();

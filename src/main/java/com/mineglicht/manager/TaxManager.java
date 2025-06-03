@@ -36,11 +36,11 @@ public class TaxManager {
     // Tasa de impuesto predeterminada (18% según requerimientos)
     private final double DEFAULT_TAX_RATE = 0.18;
 
-    public TaxManager(cityWars plugin) {
+    public TaxManager(cityWars plugin, CityManager cityManager, CitizenManager citizenManager, EconomyManager economyManager) {
         this.plugin = plugin;
-        this.cityManager = plugin.getCityManager();
-        this.citizenManager = plugin.getCitizenManager();
-        this.economyManager = plugin.getEconomyManager();
+        this.cityManager = cityManager;
+        this.citizenManager = citizenManager;
+        this.economyManager = economyManager;
 
         // Iniciar la tarea de recolección de impuestos
         startTaxCollection();

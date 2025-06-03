@@ -1,7 +1,12 @@
 package com.mineglicht.config;
 
 import com.mineglicht.cityWars;
+import me.xanium.gemseconomy.file.F;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -13,6 +18,8 @@ public class ConfigManager {
     
     private final cityWars plugin;
     private FileConfiguration config;
+    private FileConfiguration messagesConfig;
+    private final File messagesFile;
     
     // Configuración por defecto para impuestos
     private static final BigDecimal DEFAULT_TAX_RATE = new BigDecimal("0.18"); // 18%
@@ -21,6 +28,7 @@ public class ConfigManager {
     
     public ConfigManager(cityWars plugin) {
         this.plugin = plugin;
+        this.messagesFile = new File(plugin.getDataFolder(), "messages.yml");
         loadConfig();
     }
     
@@ -136,9 +144,16 @@ public class ConfigManager {
      * Carga la configuración desde el archivo
      */
     public void loadConfig() {
+        // Cargar config.yml principal
         plugin.saveDefaultConfig();
         plugin.reloadConfig();
         this.config = plugin.getConfig();
+
+        // Cargar messages.yml
+        if (!messagesFile.exists()) {
+            plugin.saveResource("messages.yml", false);
+        }
+        messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
     }
     
     /**
@@ -146,5 +161,39 @@ public class ConfigManager {
      */
     public void reloadConfig() {
         loadConfig();
+    }
+
+    /**
+     * Obtiene la configuración principal (config.yml)
+     * @return FileConfiguration del config.yml
+     */
+    public FileConfiguration getConfig() {
+        return config;
+    }
+
+    /**
+     * Obtiene la configuración de mensajes (messages.yml)
+     * @return FileConfiguration del messages.yml
+     */
+    public FileConfiguration getMessagesConfig() {
+        return messagesConfig;
+    }
+
+    /**
+     * Guarda la configuración principal
+     */
+    public void saveConfig() {
+        plugin.saveConfig();
+    }
+
+    /**
+     * Guarda la configuración de mensajes
+     */
+    public void saveMessagesConfig() {
+        try {
+            messagesConfig.save(messagesFile);
+        } catch (IOException e) {
+            plugin.getLogger().severe("No se pudo guardar messages.yml: " + e.getMessage());
+        }
     }
 }
