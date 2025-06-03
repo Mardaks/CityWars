@@ -491,12 +491,4 @@ public class cityWars extends JavaPlugin {
     public boolean isFullyLoaded() {
         return fullyLoaded;
     }
-
-    /**
-     * Obtiene la instancia de Messages para acceso centralizado
-     * @return ConfigManager para acceso a mensajes configurables
-     */
-    public Messages getMessages() {
-    return this.getMessages(); // NO this.configManager
-}
 }
