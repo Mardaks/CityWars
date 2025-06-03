@@ -26,6 +26,7 @@ public class City {
     private Location center;
     private final Map<CityFlag, Boolean> flags;
     private SiegeState siegeState; // Campo para el estado del asedio
+    private double taxRate;
 
     // Constructor principal para crear nueva ciudad
     public City(String name, UUID ownerUUID, World world, Vector minPoint, Vector maxPoint) {
@@ -42,6 +43,7 @@ public class City {
         this.level = 1;
         this.flags = new EnumMap<>(CityFlag.class);
         this.siegeState = SiegeState.NONE; // Estado inicial sin asedio
+        this.taxRate = 0.0;
         
         // Calcular centro basado en min y max points
         this.center = calculateCenter();
@@ -54,7 +56,7 @@ public class City {
     }
 
     // Constructor para cargar ciudad desde archivo de configuración
-    public City(UUID id, String name, UUID ownerUUID, World world, Vector minPoint, Vector maxPoint, Location center) {
+    public City(UUID id, String name, UUID ownerUUID, World world, Vector minPoint, Vector maxPoint, Location center, double taxRate) {
         this.id = id;
         this.name = name;
         this.ownerUUID = ownerUUID;
@@ -69,6 +71,7 @@ public class City {
         this.level = 1;
         this.flags = new EnumMap<>(CityFlag.class);
         this.siegeState = SiegeState.NONE; // Estado inicial sin asedio
+        this.taxRate = taxRate;
         
         // Inicializar flags con valores por defecto
         initializeDefaultFlags();
@@ -128,6 +131,14 @@ public class City {
     public void setMaxPoint(Vector maxPoint) {
         this.maxPoint = maxPoint;
         this.center = calculateCenter(); // Recalcular centro
+    }
+
+    public double getTaxRate() {
+        return this.taxRate;
+    }
+    
+    public void setTaxRate(double taxRate) {
+        this.taxRate = taxRate;
     }
 
     public Location getCenter() {
