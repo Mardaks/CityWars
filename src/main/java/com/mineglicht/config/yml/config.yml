@@ -48,6 +48,9 @@ tax:
   # Balance mínimo requerido para pagar impuestos
   minimum-balance: 100.0
 
+  # Tiempo para cobrar impuestos
+  collection-interval: 86400
+
 # === CONFIGURACIONES DE ASEDIO ===
 siege:
   # Porcentaje mínimo de defensores requeridos para iniciar un asedio

@@ -338,7 +338,7 @@ public class cityWars extends JavaPlugin {
             long taxInterval = Settings.TAX_COLLECTION_INTERVAL * 20L; // Convertir a ticks
             taxCollectionTask = Bukkit.getScheduler().runTaskTimerAsynchronously(
                 this,
-                new TaxCollectionTask(this, taxManager),
+                new TaxCollectionTask(this),
                 taxInterval,
                 taxInterval
             );

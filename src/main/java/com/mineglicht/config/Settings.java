@@ -2,6 +2,7 @@ package com.mineglicht.config;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.checkerframework.checker.units.qual.C;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -30,6 +31,7 @@ public class Settings {
     public static int TAX_COLLECTION_HOUR;
     public static boolean TAX_NOTIFY_CITIZENS;
     public static double TAX_MINIMUM_BALANCE;
+    public static int TAX_COLLECTION_INTERVAL;
 
     // === CONFIGURACIONES DE ASEDIO ===
     public static int SIEGE_MIN_DEFENDERS_PERCENTAGE;
@@ -105,6 +107,7 @@ public class Settings {
         new ConfigParam("tax.collection-hour", () -> TAX_COLLECTION_HOUR, v -> TAX_COLLECTION_HOUR = v, 12, v -> v >= 0 && v <= 23),
         new ConfigParam("tax.notify-citizens", () -> TAX_NOTIFY_CITIZENS, v -> TAX_NOTIFY_CITIZENS = v, true),
         new ConfigParam("tax.minimum-balance", () -> TAX_MINIMUM_BALANCE, v -> TAX_MINIMUM_BALANCE = v, 100.0, v -> v >= 0),
+        new ConfigParam("tax.collection-interval", () -> TAX_COLLECTION_INTERVAL, v -> TAX_COLLECTION_INTERVAL = v, 86400, v -> v >= 0),
         
         // Asedio
         new ConfigParam("siege.min-defenders-percentage", () -> SIEGE_MIN_DEFENDERS_PERCENTAGE, v -> SIEGE_MIN_DEFENDERS_PERCENTAGE = v, 30, v -> v >= 0 && v <= 100),
