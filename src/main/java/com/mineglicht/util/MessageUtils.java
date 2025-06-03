@@ -1,5 +1,6 @@
 package com.mineglicht.util;
 
+import com.mineglicht.manager.CitizenManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -8,7 +9,10 @@ import org.bukkit.plugin.Plugin;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -170,6 +174,31 @@ public class MessageUtils {
         if (citizens != null && message != null) {
             citizens.forEach(citizen -> sendMessage(citizen, message));
         }
+    }
+
+    /**
+     * Envia un mensaje a todos los cuidadanos online de una cuidad espeficica
+     *
+     * @param citizenManager Manager de cuidadanos
+     * @param cityId UUID de la cuidad
+     * @param message Mensaje a enviar
+     */
+    public static void sendToCityMembers(CitizenManager citizenManager, UUID cityId, String message) {
+        if (cityId == null || message == null) {
+            return;
+        }
+
+        Set<UUID> onlineCitizens = citizenManager.getOnlineCitizensInCity(cityId);
+        List<Player> onlinePlayers = new ArrayList<>();
+
+        for (UUID citzenId : onlineCitizens) {
+            Player player = Bukkit.getPlayer(citzenId);
+            if (player != null && player.isOnline()) {
+                onlinePlayers.add(player);
+            }
+        }
+
+        sendToCitizens(onlinePlayers, message);
     }
 
     /**
@@ -378,5 +407,25 @@ public class MessageUtils {
      */
     public static String createDefaultLine() {
         return createLine('-', 50, "&7&m");
+    }
+
+    /**
+     * Formatea un mensaje reemplazando placeholders.
+     *
+     * @param messageKey Clave del mensaje (puedes usar directamente el texto)
+     * @param replacements Pares de placeholder y valor (ej: "%player%", "Steve")
+     * @return Mensaje formateado
+     */
+    public static String formatMessage(String messageKey, String... replacements) {
+        String message = messageKey; // Por ahora usa directamente el texto
+
+        // Reemplazar placeholders en pares
+        for (int i = 0; i < replacements.length - 1; i += 2) {
+            String placeholder = replacements[i];
+            String value = replacements[i + 1];
+            message = message.replace(placeholder, value);
+        }
+
+        return message;
     }
 }

@@ -56,6 +56,8 @@ public class Messages {
     public static String CITY_MAX_CITIZENS_REACHED;
     public static String CITY_INFO_HEADER;
     public static List<String> CITY_INFO_FORMAT;
+    public static String CITY_MEMBER_JOINED;
+    public static String CITY_MEMBER_LEFT;
 
     // === MENSAJES DE ASEDIO ===
     public static String SIEGE_STARTED;
@@ -75,6 +77,8 @@ public class Messages {
     public static String SIEGE_FLAG_DESTROYED;
     public static String SIEGE_INSUFFICIENT_FUNDS;
     public static String SIEGE_INVALID_LOCATION;
+    public static String SIEGE_MEMBER_DISCONNECT;
+    public static String SIEGE_MEMBER_RECONNECT;
 
     // === MENSAJES DE SAQUEO ===
     public static String LOOT_PHASE_STARTED;
@@ -130,7 +134,7 @@ public class Messages {
 
     /**
      * Inicializa todos los mensajes desde el archivo messages.yml
-     * 
+     *
      * @param configuration Configuración cargada del archivo
      */
     public static void initialize(FileConfiguration configuration) {
@@ -204,6 +208,8 @@ public class Messages {
         CITY_MAX_CITIZENS_REACHED = getConfigString("city.max-citizens-reached", "&cLa ciudad ha alcanzado el máximo de ciudadanos.");
         CITY_INFO_HEADER = getConfigString("city.info-header", "&6=== Información de {city} ===");
         CITY_INFO_FORMAT = getConfigStringList("city.info-format");
+        CITY_MEMBER_JOINED = getConfigString("city.member-joined", "&a¡{player} se ha conectado a la ciudad!");
+        CITY_MEMBER_LEFT = getConfigString("city.member-left", "&c¡{player} se ha desconectado a la ciudad!");
     }
 
     /**
@@ -227,6 +233,8 @@ public class Messages {
         SIEGE_FLAG_DESTROYED = getConfigString("siege.flag-destroyed", "&a¡Bandera de asedio destruida!");
         SIEGE_INSUFFICIENT_FUNDS = getConfigString("siege.insufficient-funds", "&cNo tienes suficientes {economy} para iniciar un asedio.");
         SIEGE_INVALID_LOCATION = getConfigString("siege.invalid-location", "&cNo puedes colocar la bandera aquí.");
+        SIEGE_MEMBER_DISCONNECT = getConfigString("siege.member-disconnect", "&cEl jugador &l{player} &cse ha desconecto en el asedio!");
+        SIEGE_MEMBER_RECONNECT = getConfigString("member-reconnected-siege", "&aEl jugador &l{player} &ase ha reconectado en el asedio!");
     }
 
     /**
@@ -328,7 +336,7 @@ public class Messages {
 
     /**
      * Convierte códigos de color de Minecraft
-     * 
+     *
      * @param text Texto con códigos de color
      * @return Texto con colores aplicados
      */
@@ -338,7 +346,7 @@ public class Messages {
 
     /**
      * Obtiene un mensaje con el prefijo
-     * 
+     *
      * @param message Mensaje a mostrar
      * @return Mensaje con prefijo
      */
@@ -348,7 +356,7 @@ public class Messages {
 
     /**
      * Reemplaza placeholders en un mensaje
-     * 
+     *
      * @param message     Mensaje original
      * @param placeholder Placeholder a reemplazar
      * @param value       Valor del placeholder
@@ -363,7 +371,7 @@ public class Messages {
 
     /**
      * Reemplaza múltiples placeholders en un mensaje
-     * 
+     *
      * @param message      Mensaje original
      * @param placeholders Array de placeholders (placeholder, valor, placeholder, valor...)
      * @return Mensaje con placeholders reemplazados
@@ -382,7 +390,7 @@ public class Messages {
 
     /**
      * Envía un mensaje a un jugador con prefijo
-     * 
+     *
      * @param player  Jugador destinatario
      * @param message Mensaje a enviar
      */
@@ -394,7 +402,7 @@ public class Messages {
 
     /**
      * Envía un mensaje a un jugador con prefijo y placeholders
-     * 
+     *
      * @param player       Jugador destinatario
      * @param message      Mensaje a enviar
      * @param placeholders Placeholders a reemplazar
@@ -408,7 +416,7 @@ public class Messages {
 
     /**
      * Envía un título a un jugador
-     * 
+     *
      * @param player   Jugador destinatario
      * @param title    Título principal
      * @param subtitle Subtítulo
@@ -427,7 +435,7 @@ public class Messages {
 
     /**
      * Envía un título a un jugador con placeholders
-     * 
+     *
      * @param player       Jugador destinatario
      * @param title        Título principal
      * @param subtitle     Subtítulo
@@ -436,8 +444,7 @@ public class Messages {
      * @param fadeOut      Tiempo de desaparición (ticks)
      * @param placeholders Placeholders a reemplazar
      */
-    public static void sendTitle(Player player, String title, String subtitle, int fadeIn, int stay, int fadeOut,
-                                String... placeholders) {
+    public static void sendTitle(Player player, String title, String subtitle, int fadeIn, int stay, int fadeOut, String... placeholders) {
         if (player != null && player.isOnline()) {
             String processedTitle = replacePlaceholders(title, placeholders);
             String processedSubtitle = replacePlaceholders(subtitle, placeholders);
@@ -447,7 +454,7 @@ public class Messages {
 
     /**
      * Método para mensajes de impuestos (compatibilidad con código existente)
-     * 
+     *
      * @param amount Cantidad de impuestos
      * @return Mensaje de impuestos cobrados con placeholder de cantidad reemplazado
      */
@@ -457,7 +464,7 @@ public class Messages {
 
     /**
      * Método optimizado para mensajes de impuestos con economía
-     * 
+     *
      * @param amount   Cantidad de impuestos
      * @param economy  Nombre de la moneda
      * @return Mensaje de impuestos cobrados con placeholders reemplazados
@@ -470,15 +477,15 @@ public class Messages {
 
     /**
      * Valida que todos los mensajes esenciales sean válidos
-     * 
+     *
      * @return true si los mensajes son válidos
      */
     public static boolean validateMessages() {
         try {
             return Stream.of(
-                PREFIX, NO_PERMISSION, CITY_CREATED, SIEGE_STARTED, 
-                COMMAND_HELP_HEADER, CITY_INFO_HEADER, TAX_COLLECTED,
-                ECONOMY_BALANCE_SHOW, PROTECTION_BLOCK_BREAK
+                    PREFIX, NO_PERMISSION, CITY_CREATED, SIEGE_STARTED,
+                    COMMAND_HELP_HEADER, CITY_INFO_HEADER, TAX_COLLECTED,
+                    ECONOMY_BALANCE_SHOW, PROTECTION_BLOCK_BREAK
             ).allMatch(Objects::nonNull);
         } catch (Exception e) {
             return false;
@@ -496,7 +503,7 @@ public class Messages {
 
     /**
      * Obtiene un mensaje personalizado del archivo de configuración
-     * 
+     *
      * @param path         Ruta del mensaje
      * @param defaultValue Valor por defecto
      * @return Mensaje con colores aplicados
@@ -507,7 +514,7 @@ public class Messages {
 
     /**
      * Obtiene una lista de mensajes personalizada del archivo de configuración
-     * 
+     *
      * @param path Ruta de la lista
      * @return Lista de mensajes con colores aplicados
      */

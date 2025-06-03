@@ -1,5 +1,6 @@
 package com.mineglicht.models;
 
+import com.mineglicht.manager.CitizenManager;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
@@ -27,6 +28,8 @@ public class City {
     private final Map<CityFlag, Boolean> flags;
     private SiegeState siegeState; // Campo para el estado del asedio
     private double taxRate;
+
+//    private CitizenManager citizenManager;
 
     // Constructor principal para crear nueva ciudad
     public City(String name, UUID ownerUUID, World world, Vector minPoint, Vector maxPoint) {
@@ -149,6 +152,19 @@ public class City {
         this.center = center;
     }
 
+    /**
+     * Obtiene la localización de la Ciudad
+     *
+     * @param city La Ciudad
+     * @return La localización del spawn o null si la ciudad es null
+     */
+    public Location getSpawnLocation(City city) {
+        if (city == null) {
+            return null;
+        }
+        return city.getCenter();
+    }
+
     // Métodos para ciudadanos
     public Set<UUID> getCitizens() {
         return new HashSet<>(citizens);
@@ -172,6 +188,14 @@ public class City {
     public int getCitizenCount() {
         return citizens.size();
     }
+
+    // Este metodo era para contar a los jugadores conectado de una cuidad
+//    public int getOnlineCount() {
+//        if (citizenManager != null) {
+//            return citizenManager.getOnlineCitizensInCity(this.getId()).size();
+//        }
+//        return 0;
+//    }
 
     // Métodos para administradores
     public Set<UUID> getAdminIds() {

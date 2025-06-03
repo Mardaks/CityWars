@@ -227,6 +227,24 @@ public class CityManager {
         }
         return null;
     }
+  
+    /**
+     * Obtiene la ciudad en una ubicación específica
+     *
+     * @param location Ubicación
+     */
+    public City getCityAtLocation(Location location) {
+        if (location == null) {
+            return null;
+        }
+
+        for (City city : getAllCities()) {
+            if (city.isInCity(location)) {
+                return city;
+            }
+        }
+        return null;
+    }
 
     /**
      * Gets all cities.
