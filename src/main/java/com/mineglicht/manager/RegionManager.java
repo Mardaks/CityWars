@@ -7,6 +7,7 @@ import com.mineglicht.models.CityFlag;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
@@ -39,37 +40,87 @@ public class RegionManager {
      */
     public void loadRegions() {
         FileConfiguration config = plugin.getConfig();
-        if (config == null)
+        if (config == null) {
+            plugin.getLogger().warning("Configuración del plugin no disponible");
             return;
+        }
 
-        for (String cityIdStr : config.getConfigurationSection("regions").getKeys(false)) {
+        // Verificar si existe la sección "regions"
+        ConfigurationSection regionsSection = config.getConfigurationSection("regions");
+        if (regionsSection == null) {
+            plugin.getLogger().info("No se encontró la sección 'regions' en config.yml. Creando sección vacía...");
+            // Crear la sección vacía en la configuración
+            config.createSection("regions");
+            plugin.saveConfig();
+            return;
+        }
+
+        // Obtener las claves de las regiones
+        Set<String> regionKeys = regionsSection.getKeys(false);
+        if (regionKeys.isEmpty()) {
+            plugin.getLogger().info("No hay regiones definidas en la configuración");
+            return;
+        }
+
+        plugin.getLogger().info("Cargando " + regionKeys.size() + " regiones de ciudades...");
+
+        for (String cityIdStr : regionKeys) {
             try {
                 UUID cityId = UUID.fromString(cityIdStr);
                 String worldName = config.getString("regions." + cityIdStr + ".world");
-                World world = plugin.getServer().getWorld(worldName);
 
-                if (world != null) {
-                    Location min = new Location(
-                            world,
-                            config.getDouble("regions." + cityIdStr + ".min.x"),
-                            config.getDouble("regions." + cityIdStr + ".min.y"),
-                            config.getDouble("regions." + cityIdStr + ".min.z"));
-
-                    Location max = new Location(
-                            world,
-                            config.getDouble("regions." + cityIdStr + ".max.x"),
-                            config.getDouble("regions." + cityIdStr + ".max.y"),
-                            config.getDouble("regions." + cityIdStr + ".max.z"));
-
-                    cityRegions.put(cityId, new RegionBounds(min, max));
+                if (worldName == null || worldName.isEmpty()) {
+                    plugin.getLogger().warning("Mundo no especificado para región de ciudad: " + cityIdStr);
+                    continue;
                 }
+
+                World world = plugin.getServer().getWorld(worldName);
+                if (world == null) {
+                    plugin.getLogger()
+                            .warning("Mundo '" + worldName + "' no encontrado para región de ciudad: " + cityIdStr);
+                    continue;
+                }
+
+                // Verificar que existan todas las coordenadas necesarias
+                String basePath = "regions." + cityIdStr + ".";
+                if (!config.contains(basePath + "min.x") || !config.contains(basePath + "min.y") ||
+                        !config.contains(basePath + "min.z") || !config.contains(basePath + "max.x") ||
+                        !config.contains(basePath + "max.y") || !config.contains(basePath + "max.z")) {
+                    plugin.getLogger().warning("Coordenadas incompletas para región de ciudad: " + cityIdStr);
+                    continue;
+                }
+
+                Location min = new Location(
+                        world,
+                        config.getDouble(basePath + "min.x"),
+                        config.getDouble(basePath + "min.y"),
+                        config.getDouble(basePath + "min.z"));
+
+                Location max = new Location(
+                        world,
+                        config.getDouble(basePath + "max.x"),
+                        config.getDouble(basePath + "max.y"),
+                        config.getDouble(basePath + "max.z"));
+
+                // Validar que las coordenadas sean lógicas
+                if (min.getX() >= max.getX() || min.getY() >= max.getY() || min.getZ() >= max.getZ()) {
+                    plugin.getLogger().warning("Coordenadas inválidas para región de ciudad: " + cityIdStr +
+                            " (min debe ser menor que max)");
+                    continue;
+                }
+
+                cityRegions.put(cityId, new RegionBounds(min, max));
+                plugin.getLogger().info("Región cargada para ciudad: " + cityIdStr + " en mundo: " + worldName);
+
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("UUID inválido para región de ciudad: " + cityIdStr);
             } catch (Exception e) {
                 plugin.getLogger().warning("Error cargando región para ciudad: " + cityIdStr);
                 e.printStackTrace();
             }
         }
 
-        plugin.getLogger().info("Cargadas " + cityRegions.size() + " regiones de ciudades");
+        plugin.getLogger().info("Cargadas " + cityRegions.size() + " regiones de ciudades exitosamente");
     }
 
     // METODO PARA ACTUALIAAZR LAS FLAGS
@@ -362,11 +413,11 @@ public class RegionManager {
         }
     }
 
-     public void setSiegePvPEnabled(City city, boolean enabled) {
+    public void setSiegePvPEnabled(City city, boolean enabled) {
         // Implementar lógica de PvP para asedios
     }
 
     public void setSiegeSackingEnabled(City city, boolean enabled) {
-        //Implementar lógica de saqueo para asedios
+        // Implementar lógica de saqueo para asedios
     }
 }
