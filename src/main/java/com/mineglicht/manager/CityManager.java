@@ -258,7 +258,7 @@ public class CityManager {
     /**
      * Loads cities from the configuration file.
      */
-    private void loadCities() {
+    public void loadCities() {
         cities.clear();
 
         if (!citiesFile.exists()) {

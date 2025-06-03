@@ -14,6 +14,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -46,7 +47,7 @@ public class SiegeManager {
     private double minimumOnlinePercentage;
 
     public SiegeManager(cityWars plugin, CityManager cityManager, EconomyManager economyManager,
-            RegionManager regionManager, CitizenManager citizenManager) {
+                        RegionManager regionManager, CitizenManager citizenManager) {
         this.plugin = plugin;
         this.cityManager = cityManager;
         this.economyManager = economyManager;
@@ -638,7 +639,7 @@ public class SiegeManager {
 
     /**
      * Obtiene todos los miembros de una ciudad específica
-     * 
+     *
      * @param cityName Nombre de la ciudad
      * @return Lista de jugadores que son miembros de la ciudad
      */
@@ -661,7 +662,7 @@ public class SiegeManager {
 
     /**
      * Obtiene los líderes de una ciudad específica
-     * 
+     *
      * @param cityName Nombre de la ciudad
      * @return Lista de jugadores que son líderes de la ciudad
      */
@@ -703,8 +704,8 @@ public class SiegeManager {
             return false;
         }
     }
-  
-  public UUID getSiegeFlagIdByCity(UUID cityId) {
+
+    public UUID getSiegeFlagIdByCity(UUID cityId) {
         for (Map.Entry<UUID, SiegeFlag> entry : activeSieges.entrySet()) {
             SiegeFlag flag = entry.getValue();
             if (flag.getDefendingCityId().equals(cityId) || flag.getAttackingCityId().equals(cityId)) {
@@ -712,118 +713,158 @@ public class SiegeManager {
             }
         }
         return null;
-  }
-  
-  /**
-   * Verifica si una ciudad está bajo asedio
-   *
-   * @param cityId UUID de la ciudad
-   */
-  public boolean isCityUnderSiege(UUID cityId) {
-      if (cityId == null) {
-          return false;
-      }
+    }
 
-      // Verificar si hay algun asedio activo donde esta cuidad sea la defensora
-      for (SiegeFlag siegeFlag : activeSieges.values()) {
-          if (siegeFlag.getDefendingCityId().equals(cityId) && siegeFlag.getState() == SiegeState.ACTIVE) {
-              return true;
-          }
-      }
-      return false;
-  }
+    /**
+     * Verifica si una ciudad está bajo asedio
+     *
+     * @param cityId UUID de la ciudad
+     */
+    public boolean isCityUnderSiege(UUID cityId) {
+        if (cityId == null) {
+            return false;
+        }
 
-  /**
-   * Verifica si un jugador esta cargando un estandarte de asedio
-   *
-   * @param player El jugador que esta con el estandarte
-   */
-  public boolean isPlayerCarryingSiegeFlag(Player player) {
-      if (player == null || !player.isOnline()) {
-          return false;
-      }
+        // Verificar si hay algun asedio activo donde esta cuidad sea la defensora
+        for (SiegeFlag siegeFlag : activeSieges.values()) {
+            if (siegeFlag.getDefendingCityId().equals(cityId) && siegeFlag.getState() == SiegeState.ACTIVE) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-      // Obtener el material del estandarte desde config
-      String flagMaterialName = plugin.getConfig().getString("siege.flag-material", "WHITE_BANNER");
-      Material flagMaterial;
+    /**
+     * Verifica si un jugador esta cargando un estandarte de asedio
+     *
+     * @param player El jugador que esta con el estandarte
+     */
+    public boolean isPlayerCarryingSiegeFlag(Player player) {
+        if (player == null || !player.isOnline()) {
+            return false;
+        }
 
-      try {
-          flagMaterial = Material.valueOf(flagMaterialName.toUpperCase());
-      } catch (IllegalArgumentException e) {
-          plugin.getLogger().warning("Material de estandarte invalido en config: " + flagMaterialName);
-          flagMaterial = Material.WHITE_BANNER;
-      }
+        // Obtener el material del estandarte desde config
+        String flagMaterialName = plugin.getConfig().getString("siege.flag-material", "WHITE_BANNER");
+        Material flagMaterial;
 
-      // Verificar si el jugador tiene el estandarte en su inventario
-      return player.getInventory().contains(flagMaterial);
-  }
+        try {
+            flagMaterial = Material.valueOf(flagMaterialName.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            plugin.getLogger().warning("Material de estandarte invalido en config: " + flagMaterialName);
+            flagMaterial = Material.WHITE_BANNER;
+        }
 
-  /**
-   * Cancela un asedio por UUID del jugador que lleva el estandarte
-   *
-   * @param playerId UUID del jugador
-   * @return true si el jugador es iniciador/portador de un asedio, false en caso contrario
-   */
-  public boolean cancelSiegeByPlayer(UUID playerId) {
-      if (playerId == null) {
-          return false;
-      }
+        // Verificar si el jugador tiene el estandarte en su inventario
+        return player.getInventory().contains(flagMaterial);
+    }
 
-      // Busca el asedio donde este jugador sea el iniciador/portador
-      for (Map.Entry<UUID, SiegeFlag> entry : activeSieges.entrySet()) {
-          SiegeFlag siegeFlag = entry.getValue();
+    /**
+     * Cancela un asedio por UUID del jugador que lleva el estandarte
+     *
+     * @param playerId UUID del jugador
+     * @return true si el jugador es iniciador/portador de un asedio, false en caso contrario
+     */
+    public boolean cancelSiegeByPlayer(UUID playerId) {
+        if (playerId == null) {
+            return false;
+        }
 
-          // Verificar si este jugador es quien inicio el asedio
-          if (siegeFlag.getAttackerPlayerId() != null && siegeFlag.getAttackerPlayerId().equals(playerId)) {
-              return cancelSiege(entry.getKey());
-          }
-      }
-      return false;
-  }
+        // Busca el asedio donde este jugador sea el iniciador/portador
+        for (Map.Entry<UUID, SiegeFlag> entry : activeSieges.entrySet()) {
+            SiegeFlag siegeFlag = entry.getValue();
 
-  /**
-   * Notifica a todos los atacantes de un asedio específico
-   *
-   * @param cityId UUID de la ciudad asediada
-   * @param message mensaje a los atacantes cuado un defensor muere
-   */
-  public void notifyAttackers(UUID cityId, String message) {
-      if (message == null || message.isEmpty() || cityId == null) {
-          return;
-      }
+            // Verificar si este jugador es quien inicio el asedio
+            if (siegeFlag.getAttackerPlayerId() != null && siegeFlag.getAttackerPlayerId().equals(playerId)) {
+                return cancelSiege(entry.getKey());
+            }
+        }
+        return false;
+    }
 
-      // Buscar el asedio activo para esta ciudad (donde cityId es la ciudad defendida)
-      SiegeFlag activeSiege = null;
-      for (SiegeFlag siegeFlag : activeSieges.values()) {
-          if (siegeFlag.getDefendingCityId().equals(cityId) && siegeFlag.getState() == SiegeState.ACTIVE) {
-              activeSiege = siegeFlag;
-              break;
-          }
-      }
+    /**
+     * Notifica a todos los atacantes de un asedio específico
+     *
+     * @param cityId  UUID de la ciudad asediada
+     * @param message mensaje a los atacantes cuado un defensor muere
+     */
+    public void notifyAttackers(UUID cityId, String message) {
+        if (message == null || message.isEmpty() || cityId == null) {
+            return;
+        }
 
-      if (activeSiege == null) {
-          return;
-      }
+        // Buscar el asedio activo para esta ciudad (donde cityId es la ciudad defendida)
+        SiegeFlag activeSiege = null;
+        for (SiegeFlag siegeFlag : activeSieges.values()) {
+            if (siegeFlag.getDefendingCityId().equals(cityId) && siegeFlag.getState() == SiegeState.ACTIVE) {
+                activeSiege = siegeFlag;
+                break;
+            }
+        }
 
-      // Hacer la variable final para usarlo en el lambda
-      final UUID attackingCityId = activeSiege.getAttackingCityId();
+        if (activeSiege == null) {
+            return;
+        }
 
-      // Obtener la ciudad atacante
-      City attackingCity = cityManager.getAllCities().stream()
-              .filter(c -> c.getId().equals(attackingCityId))
-              .findFirst().orElse(null);
+        // Hacer la variable final para usarlo en el lambda
+        final UUID attackingCityId = activeSiege.getAttackingCityId();
 
-      if (attackingCity == null) {
-          return;
-      }
+        // Obtener la ciudad atacante
+        City attackingCity = cityManager.getAllCities().stream()
+                .filter(c -> c.getId().equals(attackingCityId))
+                .findFirst().orElse(null);
 
-      // Notificar a todos los ciudadanos online de la cuidad atacante (osea los atacantes)
-      Set<UUID> attackingCitizens = citizenManager.getOnlineCitizensInCity(attackingCity.getId());
-      for (UUID citizenId : attackingCitizens) {
-          Player citizen = Bukkit.getPlayer(citizenId);
-          if (citizen != null && citizen.isOnline()) {
-              citizen.sendMessage(message);
-          }
-      }
-  }
+        if (attackingCity == null) {
+            return;
+        }
+
+        // Notificar a todos los ciudadanos online de la cuidad atacante (osea los atacantes)
+        Set<UUID> attackingCitizens = citizenManager.getOnlineCitizensInCity(attackingCity.getId());
+        for (UUID citizenId : attackingCitizens) {
+            Player citizen = Bukkit.getPlayer(citizenId);
+            if (citizen != null && citizen.isOnline()) {
+                citizen.sendMessage(message);
+            }
+        }
+    }
+
+    /**
+     * Guardar los cooldowns en el archivo cooldown.yml
+     */
+    public void saveCooldowns() {
+        File file = new File(plugin.getDataFolder(), "cooldowns.yml");
+        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+
+        for (Map.Entry<UUID, Long> entry : siegeCooldowns.entrySet()) {
+            config.set(entry.getKey().toString(), entry.getValue());
+        }
+
+        try {
+            config.save(file);
+            plugin.getLogger().info("Cooldowns guardados correctamente.");
+        } catch (IOException e) {
+            plugin.getLogger().severe("Error al guardar cooldowns: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Cargar los cooldowns desde el archivo cooldowns.yml
+     */
+    public void loadCooldowns() {
+        File file = new File(plugin.getDataFolder(), "cooldowns.yml");
+        if (!file.exists()) return;
+
+        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+        for (String key : config.getKeys(false)) {
+            try {
+                UUID cooldownId = UUID.fromString(key);
+                long endTime = config.getLong(key);
+                siegeCooldowns.put(cooldownId, endTime);
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("UUID inválido en cooldowns.yml: " + key);
+            }
+        }
+
+        plugin.getLogger().info("Cooldowns cargados correctamente.");
+    }
 }

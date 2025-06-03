@@ -311,7 +311,7 @@ public class EconomyManager {
     /**
      * Loads economy data from configuration file.
      */
-    private void loadEconomyData() {
+    public void loadEconomyData() {
         cityBankAccounts.clear();
         
         if (!economyFile.exists()) {
