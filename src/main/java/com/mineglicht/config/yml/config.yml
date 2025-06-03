@@ -1,140 +1,199 @@
-# ===============================================
-# CityWars Plugin - Configuración Principal
-# ===============================================
 
-# Configuraciones de Ciudad
+# ============================================
+# CONFIGURACIÓN DEL PLUGIN MINEGLICHT
+# ============================================
+
+# === CONFIGURACIONES DE CIUDAD ===
 city:
-  # Tamaño mínimo de una ciudad (en bloques)
+  # Tamaño mínimo de una ciudad (en bloques de radio)
   min-size: 50
-  # Tamaño máximo de una ciudad (en bloques)
+  
+  # Tamaño máximo de una ciudad (en bloques de radio)
   max-size: 500
-  # Tamaño por defecto al crear una ciudad
+  
+  # Tamaño por defecto de una nueva ciudad
   default-size: 100
-  # Costo para expandir la ciudad (por bloque)
+  
+  # Costo para expandir el territorio de la ciudad
   expansion-cost: 1000
-  # Auto-reclamar territorio al crear ciudad
+  
+  # Si las ciudades reclaman territorio automáticamente al expandirse
   auto-claim: true
+  
   # Costo para crear una nueva ciudad
   creation-cost: 5000.0
-  # Máximo número de ciudadanos por ciudad
+  
+  # Número máximo de ciudadanos por ciudad
   max-citizens: 50
 
-# Configuraciones de Impuestos
+# === CONFIGURACIONES DE REGIÓN ===
+region:
+  # Límite Y mínimo para las regiones de ciudad (Minecraft 1.18+)
+  min-y: -64
+  
+  # Límite Y máximo para las regiones de ciudad (Minecraft 1.18+)
+  max-y: 320
+
+# === CONFIGURACIONES DE IMPUESTOS ===
 tax:
-  # Tasa de impuestos (18% = 0.18)
+  # Tasa de impuestos (0.0 = 0%, 1.0 = 100%)
   rate: 0.18
-  # Hora del día para cobrar impuestos (formato 24h)
+  
+  # Hora del día para recolectar impuestos (formato 24h: 0-23)
   collection-hour: 12
-  # Notificar a ciudadanos sobre cobro de impuestos
+  
+  # Notificar a los ciudadanos cuando se recolecten impuestos
   notify-citizens: true
+  
   # Balance mínimo requerido para pagar impuestos
   minimum-balance: 100.0
 
-# Configuraciones de Asedio
+# === CONFIGURACIONES DE ASEDIO ===
 siege:
-  # Porcentaje mínimo de defensores que deben estar conectados
+  # Porcentaje mínimo de defensores requeridos para iniciar un asedio
   min-defenders-percentage: 30
-  # Duración máxima del asedio en minutos
+  
+  # Duración del asedio en minutos
   duration-minutes: 30
-  # Intervalo de fuegos artificiales en segundos
+  
+  # Intervalo entre fuegos artificiales durante el asedio (en segundos)
   firework-interval-seconds: 60
-  # Cooldown entre asedios en horas
+  
+  # Tiempo de enfriamiento entre asedios (en horas)
   cooldown-hours: 24
-  # Tipo de economía requerida para atacar (jp, glichtcoins, glichtmines)
+  
+  # Tipo de economía para el costo del asedio ('jp' para JobsPoints, 'default' para dinero)
   economy-type: "jp"
+  
   # Costo para iniciar un asedio
   cost: 10000.0
-  # Anunciar asedios globalmente
+  
+  # Anunciar globalmente cuando inicie un asedio
   announce-global: true
 
-# Configuraciones de Saqueo
+# === CONFIGURACIONES DE SAQUEO ===
 loot:
-  # Duración de la fase de saqueo en minutos
+  # Duración de la fase de saqueo después de ganar un asedio (en minutos)
   phase-duration-minutes: 5
-  # Porcentaje del banco de la ciudad que se roba (50% = 0.5)
+  
+  # Porcentaje del dinero de la ciudad que se puede saquear (0.0 = 0%, 1.0 = 100%)
   percentage: 0.5
+  
   # Permitir romper bloques durante el saqueo
   break-blocks: true
+  
   # Permitir abrir cofres durante el saqueo
   open-chests: true
+  
   # Bloques protegidos que no se pueden romper durante el saqueo
   protected-blocks:
     - "BEDROCK"
     - "BARRIER"
     - "COMMAND_BLOCK"
+    - "CHAIN_COMMAND_BLOCK"
+    - "REPEATING_COMMAND_BLOCK"
     - "STRUCTURE_BLOCK"
 
-# Configuraciones del Estandarte de Asedio
+# === CONFIGURACIONES DEL ESTANDARTE DE ASEDIO ===
 siege-flag:
-  # Material del estandarte
+  # Material del estandarte (debe ser un banner válido de Minecraft)
   material: "RED_BANNER"
-  # Nombre del ítem
-  name: "&c&lEstandarte de Asedio"
-  # Descripción del ítem
+  
+  # Nombre del estandarte (admite códigos de color con &)
+  name: "§c§lEstandarte de Asedio"
+  
+  # Descripción del estandarte (lista de líneas)
   lore:
-    - "&7Coloca este estandarte en territorio enemigo"
-    - "&7para iniciar un asedio."
+    - "§7Úsalo para iniciar un asedio"
+    - "§7contra una ciudad enemiga"
     - ""
-    - "&c&l¡ADVERTENCIA!"
-    - "&7Esto iniciará una guerra."
-  # Hacer que el ítem brille
+    - "§c§lATENCIÓN: §7Úsalo con cuidado"
+  
+  # Si el estandarte debe brillar (enchanted effect)
   glowing: true
-  # ID de modelo personalizado (0 = deshabilitado)
+  
+  # Datos de modelo personalizado (para resource packs)
   custom-model-data: 0
 
-# Configuraciones de Protección
+# === CONFIGURACIONES DE PROTECCIÓN ===
 protection:
-  # Bloquear spawn de mobs hostiles
+  # Prevenir spawn de mobs en territorio de ciudad
   spawn-mobs: true
-  # Bloquear romper bloques
+  
+  # Prevenir romper bloques en territorio enemigo
   block-break: true
-  # Bloquear colocar bloques
+  
+  # Prevenir colocar bloques en territorio enemigo
   block-place: true
-  # Bloquear interacciones
+  
+  # Prevenir interacciones en territorio enemigo
   interact: true
-  # Bloquear uso de enderpearls
+  
+  # Prevenir uso de enderpearls en territorio enemigo
   enderpearl: true
-  # Bloquear PvP fuera de asedios
+  
+  # Prevenir PvP fuera de asedios
   pvp-outside-siege: true
 
-# Configuraciones de Residence
+# === CONFIGURACIONES DE RESIDENCES ===
 residence:
-  # Habilitar integración con Residence
+  # Habilitar integración con el plugin Residence
   integration: true
+  
   # Deshabilitar protecciones de Residence durante asedios
   disable-during-siege: true
-  # Crear residences automáticamente para nuevos ciudadanos
+  
+  # Crear automáticamente una residence al fundar una ciudad
   auto-create: false
-  # Tamaño por defecto de las residences
+  
+  # Tamaño por defecto de la residence (en bloques de radio)
   default-size: 20
 
-# Configuraciones de Economía
+# === CONFIGURACIONES DE ECONOMÍA ===
 economy:
   # Habilitar integración con GemsEconomy
   gems-economy-integration: true
-  # Economía principal del servidor
+  
+  # Economía principal a usar ('default', 'vault', 'gems')
   primary-economy: "default"
-  # Bancos separados para cada ciudad
+  
+  # Cada ciudad tiene su propio banco separado
   separate-city-banks: true
-  # Fondos iniciales al crear una ciudad
+  
+  # Fondos iniciales para nuevas ciudades
   city-starting-funds: 10000.0
 
-# Configuraciones de Eventos
+# === CONFIGURACIONES DE EVENTOS ===
 events:
-  # Habilitar eventos personalizados
+  # Habilitar eventos personalizados del plugin
   enable-custom-events: true
+  
   # Registrar todos los eventos en la consola
   log-all-events: false
-  # Anunciar eventos importantes al servidor
+  
+  # Broadcast de eventos importantes a todos los jugadores
   broadcast-important-events: true
 
-# Configuraciones de Debug
+# === CONFIGURACIONES DE DEBUG ===
 debug:
-  # Modo debug general
+  # Modo debug general (muestra información adicional en consola)
   mode: false
+  
   # Debug específico para eventos de asedio
   siege-events: false
+  
   # Debug específico para eventos de economía
   economy-events: false
+  
   # Debug específico para eventos de ciudad
   city-events: false
+
+# ============================================
+# NOTAS IMPORTANTES:
+# ============================================
+# 1. Los valores mostrados son los valores por defecto
+# 2. Para colores en nombres/lore usa § en lugar de &
+# 3. Los materiales deben ser nombres válidos de Minecraft
+# 4. Las tasas/porcentajes van de 0.0 a 1.0
+# 5. Los tiempos están en las unidades especificadas
+# 6. Reinicia el servidor después de cambiar configuraciones críticas
