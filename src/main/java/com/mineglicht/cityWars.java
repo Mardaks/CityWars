@@ -5,11 +5,12 @@ import com.mineglicht.api.CityWarsAPIImpl;
 import com.mineglicht.commands.*;
 import com.mineglicht.config.*;
 import com.mineglicht.integration.*;
-//import com.mineglicht.listener.*;
+import com.mineglicht.listener.*;
 import com.mineglicht.manager.*;
 import com.mineglicht.task.*;
 
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -271,7 +272,7 @@ public class cityWars extends JavaPlugin {
             PluginManager pm = getServer().getPluginManager();
             
             // Descomentar cuando tengas los listeners implementados
-            // pm.registerEvents(new PlayerListener(this), this);
+            pm.registerEvents(new PlayerListener(this), this);
             // pm.registerEvents(new CityListener(this), this);
             // pm.registerEvents(new SiegeListener(this), this);
             // pm.registerEvents(new BlockListener(this), this);
@@ -335,12 +336,7 @@ public class cityWars extends JavaPlugin {
             
             // Tarea de recolección de impuestos (cada 24 horas)
             long taxInterval = Settings.TAX_COLLECTION_INTERVAL * 20L; // Convertir a ticks
-            taxCollectionTask = Bukkit.getScheduler().runTaskTimerAsynchronously(
-                this,
-                new TaxCollectionTask(this),
-                taxInterval,
-                taxInterval
-            );
+            taxCollectionTask = new TaxCollectionTask(this).runTaskTimerAsynchronously(this, taxInterval, taxInterval);
 
             getLogger().info("§a✓ Tareas programadas iniciadas correctamente");
             

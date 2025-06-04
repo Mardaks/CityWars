@@ -1,0 +1,88 @@
+# citizens.yml - Archivo de datos de ciudadanos para CityWars
+# Este archivo almacena todos los ciudadanos y su información de membresía
+# Estructura compatible con CitizenManager.java
+
+# Ejemplo de ciudadano (UUID del jugador como clave principal)
+550e8400-e29b-41d4-a716-446655440002:
+  # UUID de la ciudad a la que pertenece el ciudadano
+  cityId: "550e8400-e29b-41d4-a716-446655440000"
+  # Fecha en que se unió a la ciudad (timestamp en milisegundos)
+  joinDate: 1704067200000
+
+# Segundo ciudadano de ejemplo
+550e8400-e29b-41d4-a716-446655440003:
+  cityId: "550e8400-e29b-41d4-a716-446655440000"
+  joinDate: 1704153600000
+
+# Tercer ciudadano de ejemplo (de otra ciudad)
+660e8400-e29b-41d4-a716-446655440002:
+  cityId: "660e8400-e29b-41d4-a716-446655440000"
+  joinDate: 1704240000000
+
+# Cuarto ciudadano de ejemplo
+660e8400-e29b-41d4-a716-446655440003:
+  cityId: "660e8400-e29b-41d4-a716-446655440000"
+  joinDate: 1704326400000
+
+# Ciudadanos de la ciudad de guerra
+770e8400-e29b-41d4-a716-446655440002:
+  cityId: "770e8400-e29b-41d4-a716-446655440000"
+  joinDate: 1704412800000
+
+770e8400-e29b-41d4-a716-446655440003:
+  cityId: "770e8400-e29b-41d4-a716-446655440000"
+  joinDate: 1704499200000
+
+770e8400-e29b-41d4-a716-446655440004:
+  cityId: "770e8400-e29b-41d4-a716-446655440000"
+  joinDate: 1704585600000
+
+770e8400-e29b-41d4-a716-446655440005:
+  cityId: "770e8400-e29b-41d4-a716-446655440000"
+  joinDate: 1704672000000
+
+770e8400-e29b-41d4-a716-446655440006:
+  cityId: "770e8400-e29b-41d4-a716-446655440000"
+  joinDate: 1704758400000
+
+# NOTAS IMPORTANTES:
+#
+# 1. ESTRUCTURA DE CLAVES:
+#    - Cada ciudadano usa su UUID de jugador como clave principal
+#    - Solo se almacenan los datos esenciales de membresía
+#
+# 2. CAMPOS REQUERIDOS:
+#    - cityId: UUID de la ciudad a la que pertenece (String)
+#    - joinDate: Timestamp de cuando se unió a la ciudad (long)
+#
+# 3. RELACIÓN CON CITIES.YML:
+#    - El cityId debe corresponder a una ciudad existente en cities.yml
+#    - Si una ciudad es eliminada, sus ciudadanos deben ser limpiados
+#
+# 4. GESTIÓN AUTOMÁTICA:
+#    - Los ciudadanos se crean automáticamente cuando se unen a una ciudad
+#    - Se eliminan automáticamente cuando dejan la ciudad
+#    - El sistema maneja automáticamente cambios de ciudad
+#
+# 5. VALIDACIÓN:
+#    - CitizenManager valida que la ciudad existe al cargar
+#    - Si una ciudad no existe, el ciudadano es ignorado con advertencia
+#
+# 6. TIMESTAMPS:
+#    - joinDate utiliza System.currentTimeMillis() como referencia
+#    - Ejemplo: 1704067200000 = 1 de enero de 2024, 00:00:00 UTC
+#
+# PARA EMPEZAR CON UN ARCHIVO VACÍO:
+# Simplemente deja el archivo así: {} o completamente vacío
+# El plugin creará las entradas automáticamente cuando los jugadores
+# se unan a ciudades en el juego.
+#
+# EJEMPLO DE ARCHIVO VACÍO INICIAL:
+# {}
+
+# FUNCIONALIDAD ADICIONAL QUE MANEJA EL CITIZENMANAGER:
+# - Mapeo automático de ciudad-a-ciudadanos en memoria
+# - Conteo de ciudadanos online por ciudad
+# - Promoción/degradación de administradores (info en cities.yml)
+# - Gestión de desconexión durante asedios
+# - Validación de permisos de propietario/administrador
