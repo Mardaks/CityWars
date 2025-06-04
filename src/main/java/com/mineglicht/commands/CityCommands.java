@@ -15,9 +15,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -871,9 +868,147 @@ public class CityCommands implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender arg0, @NotNull Command arg1,
-            @NotNull String arg2, @NotNull String @NotNull [] arg3) {
-        //Auto-generated method stub 
-        throw new UnsupportedOperationException("Unimplemented method 'onTabComplete'");
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+
+        List<String> completions = new ArrayList<>();
+
+        if (args.length == 1) {
+            // Completar subcomandos
+            String partial = args[0].toLowerCase();
+            for (String subCommand : SUBCOMMANDS.keySet()) {
+                if (subCommand.startsWith(partial) && hasPermission(sender, subCommand)) {
+                    completions.add(subCommand);
+                }
+            }
+        } else if (args.length == 2) {
+            // Completar según el subcomando
+            String subCommand = args[0].toLowerCase();
+            String partial = args[1].toLowerCase();
+
+            switch (subCommand) {
+                case "join":
+                case "info":
+                    // Autocompletar nombres de ciudades
+                    for (City city : cityManager.getAllCities()) {
+                        if (city.getName().toLowerCase().startsWith(partial)) {
+                            completions.add(city.getName());
+                        }
+                    }
+                    break;
+
+                case "invite":
+                case "kick":
+                case "admin":
+                    // Autocompletar nombres de jugadores online
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        if (player.getName().toLowerCase().startsWith(partial)) {
+                            completions.add(player.getName());
+                        }
+                    }
+                    break;
+
+                case "flag":
+                    // Autocompletar flags disponibles
+                    for (CityFlag flag : CityFlag.values()) {
+                        if (flag.name().toLowerCase().startsWith(partial)) {
+                            completions.add(flag.name().toLowerCase());
+                        }
+                    }
+                    break;
+
+                case "bank":
+                    // Autocompletar acciones del banco
+                    String[] bankActions = { "deposit", "withdraw", "balance" };
+                    for (String action : bankActions) {
+                        if (action.startsWith(partial)) {
+                            completions.add(action);
+                        }
+                    }
+                    break;
+
+                case "expand":
+                    // Sugerir algunos números comunes para expansión
+                    String[] expandSuggestions = { "10", "25", "50", "100" };
+                    for (String suggestion : expandSuggestions) {
+                        if (suggestion.startsWith(partial)) {
+                            completions.add(suggestion);
+                        }
+                    }
+                    break;
+            }
+        } else if (args.length == 3) {
+            // Completar tercer argumento según contexto
+            String subCommand = args[0].toLowerCase();
+            String secondArg = args[1].toLowerCase();
+            String partial = args[2].toLowerCase();
+
+            switch (subCommand) {
+                case "admin":
+                    // Para /city admin <add/remove> <jugador>
+                    if ("add".equals(secondArg) || "remove".equals(secondArg)) {
+                        // Obtener la ciudad del jugador para sugerir ciudadanos
+                        if (sender instanceof Player) {
+                            Player player = (Player) sender;
+                            City playerCity = citizenManager.getPlayerCity(player.getUniqueId());
+                            if (playerCity != null) {
+                                // Sugerir ciudadanos de la ciudad
+                                for (UUID citizenUUID : playerCity.getCitizens()) {
+                                    String citizenName = Bukkit.getOfflinePlayer(citizenUUID).getName();
+                                    if (citizenName != null && citizenName.toLowerCase().startsWith(partial)) {
+                                        completions.add(citizenName);
+                                    }
+                                }
+                            }
+                        } else {
+                            // Si es consola, sugerir jugadores online
+                            for (Player player : Bukkit.getOnlinePlayers()) {
+                                if (player.getName().toLowerCase().startsWith(partial)) {
+                                    completions.add(player.getName());
+                                }
+                            }
+                        }
+                    } else {
+                        // Para el segundo argumento de admin (add/remove)
+                        String[] adminActions = { "add", "remove" };
+                        for (String action : adminActions) {
+                            if (action.startsWith(secondArg)) {
+                                completions.add(action);
+                            }
+                        }
+                    }
+                    break;
+
+                case "flag":
+                    // Para /city flag <flag> <true/false>
+                    String[] boolValues = { "true", "false" };
+                    for (String value : boolValues) {
+                        if (value.startsWith(partial)) {
+                            completions.add(value);
+                        }
+                    }
+                    break;
+
+                case "bank":
+                    // Para /city bank <deposit/withdraw> <cantidad>
+                    if ("deposit".equals(secondArg) || "withdraw".equals(secondArg)) {
+                        // Sugerir algunas cantidades comunes
+                        String[] amounts = { "100", "500", "1000", "5000", "10000" };
+                        for (String amount : amounts) {
+                            if (amount.startsWith(partial)) {
+                                completions.add(amount);
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+
+        // Filtrar y ordenar completions
+        completions = completions.stream()
+                .filter(s -> s.toLowerCase().startsWith(args[args.length - 1].toLowerCase()))
+                .sorted()
+                .collect(Collectors.toList());
+
+        return completions;
     }
 }

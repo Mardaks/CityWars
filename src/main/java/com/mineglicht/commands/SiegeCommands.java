@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class SiegeCommands implements CommandExecutor, @Nullable TabCompleter {
 
@@ -582,9 +583,166 @@ public class SiegeCommands implements CommandExecutor, @Nullable TabCompleter {
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender arg0, @NotNull Command arg1,
-            @NotNull String arg2, @NotNull String @NotNull [] arg3) {
-        //Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'onTabComplete'");
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
+            @NotNull String alias, @NotNull String @NotNull [] args) {
+
+        List<String> completions = new ArrayList<>();
+
+        if (args.length == 1) {
+            // Primer argumento: subcomandos
+            List<String> subCommands = Arrays.asList("start", "cancel", "info", "list", "cooldown", "give");
+
+            for (String subCommand : subCommands) {
+                if (subCommand.toLowerCase().startsWith(args[0].toLowerCase())) {
+                    // Verificar permisos para cada subcomando
+                    if (hasPermission(sender, subCommand)) {
+                        completions.add(subCommand);
+                    }
+                }
+            }
+
+            return completions;
+        }
+
+        if (args.length >= 2) {
+            String subCommand = args[0].toLowerCase();
+
+            switch (subCommand) {
+                case "start":
+                    return handleStartTabComplete(sender, args);
+                case "cancel":
+                    return handleCancelTabComplete(sender, args);
+                case "info":
+                    return handleInfoTabComplete(sender, args);
+                case "cooldown":
+                    return handleCooldownTabComplete(sender, args);
+                case "give":
+                    return handleGiveTabComplete(sender, args);
+                default:
+                    return completions;
+            }
+        }
+
+        return completions;
+    }
+
+    private List<String> handleStartTabComplete(CommandSender sender, String[] args) {
+        List<String> completions = new ArrayList<>();
+
+        if (args.length == 2) {
+            // Autocompletar con ciudades que pueden ser atacadas
+            if (sender instanceof Player) {
+                Player player = (Player) sender;
+                City playerCity = citizenManager.getPlayerCity(player.getUniqueId());
+
+                if (playerCity != null) {
+                    Collection<City> allCities = cityManager.getAllCities();
+
+                    for (City city : allCities) {
+                        // No incluir la propia ciudad y solo ciudades que pueden ser atacadas
+                        if (!city.getId().equals(playerCity.getId()) &&
+                                canCityBeAttacked(city) &&
+                                city.getName().toLowerCase().startsWith(args[1].toLowerCase())) {
+                            completions.add(city.getName());
+                        }
+                    }
+                }
+            }
+        }
+
+        return completions;
+    }
+
+    private List<String> handleCancelTabComplete(CommandSender sender, String[] args) {
+        List<String> completions = new ArrayList<>();
+
+        if (args.length == 2) {
+            // Autocompletar con ciudades que tienen asedios activos
+            for (SiegeFlag siege : activeSieges.values()) {
+                City attackingCity = cityManager.getCityById(siege.getAttackingCityId());
+                City defendingCity = cityManager.getCityById(siege.getDefendingCityId());
+
+                if (attackingCity != null &&
+                        attackingCity.getName().toLowerCase().startsWith(args[1].toLowerCase())) {
+                    completions.add(attackingCity.getName());
+                }
+
+                if (defendingCity != null &&
+                        defendingCity.getName().toLowerCase().startsWith(args[1].toLowerCase())) {
+                    completions.add(defendingCity.getName());
+                }
+            }
+
+            // Remover duplicados
+            completions = completions.stream().distinct().collect(Collectors.toList());
+        }
+
+        return completions;
+    }
+
+    private List<String> handleInfoTabComplete(CommandSender sender, String[] args) {
+        List<String> completions = new ArrayList<>();
+
+        if (args.length == 2) {
+            // Autocompletar con ciudades que tienen asedios activos
+            for (SiegeFlag siege : activeSieges.values()) {
+                City attackingCity = cityManager.getCityById(siege.getAttackingCityId());
+                City defendingCity = cityManager.getCityById(siege.getDefendingCityId());
+
+                if (attackingCity != null &&
+                        attackingCity.getName().toLowerCase().startsWith(args[1].toLowerCase())) {
+                    completions.add(attackingCity.getName());
+                }
+
+                if (defendingCity != null &&
+                        defendingCity.getName().toLowerCase().startsWith(args[1].toLowerCase())) {
+                    completions.add(defendingCity.getName());
+                }
+            }
+
+            // Remover duplicados
+            completions = completions.stream().distinct().collect(Collectors.toList());
+        }
+
+        return completions;
+    }
+
+    private List<String> handleCooldownTabComplete(CommandSender sender, String[] args) {
+        List<String> completions = new ArrayList<>();
+
+        if (args.length == 2 || args.length == 3) {
+            // Autocompletar con todas las ciudades disponibles
+            Collection<City> allCities = cityManager.getAllCities();
+            String currentArg = args[args.length - 1].toLowerCase();
+
+            for (City city : allCities) {
+                if (city.getName().toLowerCase().startsWith(currentArg)) {
+                    // Para el tercer argumento, no incluir la ciudad ya seleccionada
+                    if (args.length == 3 && city.getName().equalsIgnoreCase(args[1])) {
+                        continue;
+                    }
+                    completions.add(city.getName());
+                }
+            }
+        }
+
+        return completions;
+    }
+
+    private List<String> handleGiveTabComplete(CommandSender sender, String[] args) {
+        List<String> completions = new ArrayList<>();
+
+        if (args.length == 2) {
+            // Autocompletar con jugadores online
+            String currentArg = args[1].toLowerCase();
+
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                if (onlinePlayer.getName().toLowerCase().startsWith(currentArg)) {
+                    completions.add(onlinePlayer.getName());
+                }
+            }
+        }
+
+        return completions;
     }
 }
