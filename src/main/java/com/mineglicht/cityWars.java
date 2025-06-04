@@ -10,7 +10,6 @@ import com.mineglicht.manager.*;
 import com.mineglicht.task.*;
 
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
