@@ -29,14 +29,66 @@ public class CitizenCommands implements CommandExecutor, TabCompleter {
     private static final Set<String> VALID_COMMANDS = Set.of("help", "info", "join", "leave", "list");
     private static final Set<String> CITY_REQUIRED_COMMANDS = Set.of("join", "list");
 
+    // Constructor público (para compatibilidad)
     public CitizenCommands(cityWars plugin) {
         this.plugin = plugin;
         this.citizenManager = plugin.getCitizenManager();
         this.cityManager = plugin.getCityManager();
         this.economyManager = plugin.getEconomyManager();
 
-        plugin.getCommand("citizen").setExecutor(this);
-        plugin.getCommand("citizen").setTabCompleter(this);
+        // NO registrar aquí el comando, se hace desde registerCommands()
+        // plugin.getCommand("citizen").setExecutor(this);
+        // plugin.getCommand("citizen").setTabCompleter(this);
+    }
+
+    /**
+     * Inicializa el comando CitizenCommands con validaciones completas
+     * 
+     * @param plugin La instancia principal del plugin CityWars
+     * @return La instancia de CitizenCommands creada o null si falla
+     */
+    public static CitizenCommands initialize(cityWars plugin) {
+        // Verificar que el plugin no sea null
+        if (plugin == null) {
+            throw new IllegalArgumentException("Plugin no puede ser null");
+        }
+        
+        // Verificar que los managers estén inicializados
+        if (plugin.getCitizenManager() == null) {
+            plugin.getLogger().severe("CitizenManager no está inicializado");
+            return null;
+        }
+        
+        if (plugin.getCityManager() == null) {
+            plugin.getLogger().severe("CityManager no está inicializado");
+            return null;
+        }
+        
+        if (plugin.getEconomyManager() == null) {
+            plugin.getLogger().severe("EconomyManager no está inicializado");
+            return null;
+        }
+        
+        try {
+            // Verificar que el comando esté registrado en plugin.yml
+            if (plugin.getCommand("citizen") == null) {
+                plugin.getLogger().severe("El comando 'citizen' no está registrado en plugin.yml");
+                return null;
+            }
+            
+            // Crear la instancia del comando
+            CitizenCommands citizenCommands = new CitizenCommands(plugin);
+            
+            // Log de inicialización exitosa
+            plugin.getLogger().info("CitizenCommands inicializado correctamente");
+            
+            return citizenCommands;
+            
+        } catch (Exception e) {
+            plugin.getLogger().severe("Error al inicializar CitizenCommands: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override

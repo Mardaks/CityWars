@@ -42,6 +42,56 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
         plugin.getCommand("cityadmin").setTabCompleter(this);
     }
 
+    /**
+     * Inicializa el comando AdminCommand con validaciones completas
+     * 
+     * @param plugin La instancia principal del plugin CityWars
+     * @return La instancia de AdminCommand creada o null si falla
+     */
+    public static AdminCommand initialize(cityWars plugin) {
+        // Verificar que el plugin no sea null
+        if (plugin == null) {
+            throw new IllegalArgumentException("Plugin no puede ser null");
+        }
+
+        // Verificar que los managers estén inicializados
+        if (plugin.getCityManager() == null) {
+            plugin.getLogger().severe("CityManager no está inicializado");
+            return null;
+        }
+
+        if (plugin.getCitizenManager() == null) {
+            plugin.getLogger().severe("CitizenManager no está inicializado");
+            return null;
+        }
+
+        if (plugin.getSiegeManager() == null) {
+            plugin.getLogger().severe("SiegeManager no está inicializado");
+            return null;
+        }
+
+        try {
+            // Verificar que el comando esté registrado en plugin.yml
+            if (plugin.getCommand("cityadmin") == null) {
+                plugin.getLogger().severe("El comando 'cityadmin' no está registrado en plugin.yml");
+                return null;
+            }
+
+            // Crear la instancia del comando
+            AdminCommand adminCommand = new AdminCommand(plugin);
+
+            // Log de inicialización exitosa
+            plugin.getLogger().info("AdminCommand inicializado correctamente");
+
+            return adminCommand;
+
+        } catch (Exception e) {
+            plugin.getLogger().severe("Error al inicializar AdminCommand: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("citywars.admin")) {
