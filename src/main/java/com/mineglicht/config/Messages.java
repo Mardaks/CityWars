@@ -58,6 +58,10 @@ public class Messages {
     public static List<String> CITY_INFO_FORMAT;
     public static String CITY_MEMBER_JOINED;
     public static String CITY_MEMBER_LEFT;
+    public static String CITY_ENTER_TITLE;
+    public static String CITY_ENTER_SUBTITLE;
+    public static String CITY_EXIT_TITLE;
+    public static String CITY_EXIT_SUBTITLE;
 
     // === MENSAJES DE ASEDIO ===
     public static String SIEGE_STARTED;
@@ -210,6 +214,10 @@ public class Messages {
         CITY_INFO_FORMAT = getConfigStringList("city.info-format");
         CITY_MEMBER_JOINED = getConfigString("city.member-joined", "&a¡{player} se ha conectado a la ciudad!");
         CITY_MEMBER_LEFT = getConfigString("city.member-left", "&c¡{player} se ha desconectado a la ciudad!");
+        CITY_ENTER_TITLE = getConfigString("city.enter-title", "&a¡Bienvenido a &e%city%&a!");
+        CITY_ENTER_SUBTITLE = getConfigString("city.enter-subtitle", "&7Has entrado a la ciudad");
+        CITY_EXIT_TITLE = getConfigString("city.exit-title", "&c¡Adiós &e%city%&c!");
+        CITY_EXIT_SUBTITLE = getConfigString("city.exit-subtitle", "&7Has salido de la ciudad");
     }
 
     /**
