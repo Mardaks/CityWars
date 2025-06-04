@@ -1,6 +1,7 @@
 package com.mineglicht.listener;
 
 import com.mineglicht.cityWars;
+import com.mineglicht.config.Messages;
 import com.mineglicht.manager.CityManager;
 import com.mineglicht.manager.CitizenManager;
 import com.mineglicht.models.City;
@@ -142,8 +143,8 @@ public class PlayerListener implements Listener {
         // Si entró a una nueva ciudad
         if (fromCity != toCity && toCity != null) {
             player.sendTitle(
-                    MessageUtils.formatMessage("city.enter_title", "%city%", toCity.getName()),
-                    MessageUtils.formatMessage("city.enter_subtitle", "%city%", toCity.getName()),
+                    MessageUtils.formatMessage(Messages.CITY_ENTER_TITLE, "%city%", toCity.getName()),
+                    MessageUtils.formatMessage(Messages.CITY_ENTER_SUBTITLE, "%city%", toCity.getName()),
                     10, 70, 20);
 
             // Verificar si la ciudad está bajo asedio
@@ -155,8 +156,8 @@ public class PlayerListener implements Listener {
         // Si salió de una ciudad
         if (fromCity != toCity && fromCity != null) {
             player.sendTitle(
-                    MessageUtils.formatMessage("city.exit_title", "%city%", fromCity.getName()),
-                    MessageUtils.formatMessage("city.exit_subtitle", "%city%", fromCity.getName()),
+                    MessageUtils.formatMessage(Messages.CITY_EXIT_TITLE, "%city%", fromCity.getName()),
+                    MessageUtils.formatMessage(Messages.CITY_EXIT_SUBTITLE, "%city%", fromCity.getName()),
                     10, 70, 20);
         }
 

@@ -412,20 +412,26 @@ public class MessageUtils {
     /**
      * Formatea un mensaje reemplazando placeholders.
      *
-     * @param messageKey Clave del mensaje (puedes usar directamente el texto)
-     * @param replacements Pares de placeholder y valor (ej: "%player%", "Steve")
+     * @param message Mensaje ya obtenido desde Messages (ej: Messages.CITY_ENTER_TITLE)
+     * @param replacements Pares de placeholder y valor (ej: "%city%", "MiCiudad")
      * @return Mensaje formateado
      */
-    public static String formatMessage(String messageKey, String... replacements) {
-        String message = messageKey; // Por ahora usa directamente el texto
+    public static String formatMessage(String message, String... replacements) {
+        if (message == null || message.isEmpty()) {
+            return "";
+        }
+
+        String formattedMessage = message;
 
         // Reemplazar placeholders en pares
         for (int i = 0; i < replacements.length - 1; i += 2) {
             String placeholder = replacements[i];
             String value = replacements[i + 1];
-            message = message.replace(placeholder, value);
+            if (placeholder != null && value != null) {
+                formattedMessage = formattedMessage.replace(placeholder, value);
+            }
         }
 
-        return message;
+        return formattedMessage;
     }
 }

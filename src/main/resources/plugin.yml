@@ -1,4 +1,258 @@
 name: CityWars
 version: '1.0-SNAPSHOT'
+author: mineglicht
 main: com.mineglicht.cityWars
-api-version: '1.21'
+api-version: 1.21.5
+description: Plugin de ciudades con sistema de asedios, economía y gestión ciudadana
+#website: https://tu-sitio-web.com
+
+# Dependencias
+depend:
+  - GemsEconomy
+softdepend:
+  - Residence
+
+# Permisos por defecto - cambiar
+default-permission: op
+
+commands:
+  # Comando de administración
+  cityadmin:
+    description: Comandos de administración para CityWars
+    usage: |
+      §c/cityadmin <subcomando> [argumentos]
+      §7Subcomandos disponibles:
+      §e- reload §7- Recarga la configuración del plugin
+      §e- debug §7- Información de debug del plugin
+      §e- backup §7- Crear respaldo de datos
+      §e- restore §7- Restaurar respaldo de datos
+      §e- stats §7- Estadísticas del servidor
+      §e- city <crear|eliminar|info> §7- Gestión de ciudades
+      §e- region <crear|eliminar|info> §7- Gestión de regiones
+    permission: citywars.admin
+    permission-message: §cNo tienes permiso para usar este comando.
+    aliases: [cwadmin, cwa]
+
+  # Comandos de ciudad
+  city:
+    description: Comandos relacionados con las ciudades
+    usage: |
+      §c/city <subcomando> [argumentos]
+      §7Subcomandos disponibles:
+      §e- create <nombre> §7- Crear una nueva ciudad
+      §e- info [ciudad] §7- Información de una ciudad
+      §e- list §7- Listar todas las ciudades
+      §e- join <ciudad> §7- Unirse a una ciudad
+      §e- leave §7- Abandonar tu ciudad actual
+      §e- invite <jugador> §7- Invitar jugador a tu ciudad
+      §e- kick <jugador> §7- Expulsar jugador de la ciudad
+      §e- promote <jugador> §7- Promover jugador en la ciudad
+      §e- demote <jugador> §7- Degradar jugador en la ciudad
+      §e- deposit <cantidad> §7- Depositar dinero al tesoro
+      §e- withdraw <cantidad> §7- Retirar dinero del tesoro
+      §e- tax <cantidad> §7- Establecer impuestos
+      §e- spawn §7- Ir al spawn de tu ciudad
+      §e- sethome §7- Establecer spawn de la ciudad
+      §e- claim §7- Reclamar chunk para la ciudad
+      §e- unclaim §7- Abandonar chunk de la ciudad
+      §e- map §7- Ver mapa de chunks reclamados
+    permission: citywars.city.use
+    permission-message: §cNo tienes permiso para usar comandos de ciudad.
+    aliases: [c, ciudad]
+
+  # Comandos de ciudadano
+  citizen:
+    description: Comandos para ciudadanos
+    usage: |
+      §c/citizen <subcomando> [argumentos]
+      §7Subcomandos disponibles:
+      §e- info [jugador] §7- Ver información de ciudadano
+      §e- stats §7- Ver tus estadísticas como ciudadano
+      §e- toggle <setting> §7- Alternar configuraciones personales
+      §e- friends §7- Gestionar lista de amigos
+      §e- add <jugador> §7- Añadir amigo
+      §e- remove <jugador> §7- Remover amigo
+      §e- list §7- Lista de ciudadanos online
+      §e- mail §7- Sistema de correo ciudadano
+      §e- send <jugador> <mensaje> §7- Enviar mensaje
+      §e- read §7- Leer mensajes
+      §e- delete <id> §7- Eliminar mensaje
+    permission: citywars.citizen.use
+    permission-message: §cNo tienes permiso para usar comandos de ciudadano.
+    aliases: [ciudadano, cit]
+
+  # Comandos de asedio
+  siege:
+    description: Comandos del sistema de asedios
+    usage: |
+      §c/siege <subcomando> [argumentos]
+      §7Subcomandos disponibles:
+      §e- start <ciudad> §7- Iniciar asedio contra una ciudad
+      §e- join <lado> §7- Unirse a un asedio (attacker/defender)
+      §e- leave §7- Abandonar asedio actual
+      §e- info [asedio] §7- Información de un asedio
+      §e- list §7- Listar asedios activos
+      §e- status §7- Estado del asedio actual
+      §e- surrender §7- Rendirse en el asedio
+      §e- cancel §7- Cancelar asedio (solo admins)
+      §e- history §7- Historial de asedios
+    permission: citywars.siege.use
+    permission-message: §cNo tienes permiso para usar comandos de asedio.
+    aliases: [asedio, war, guerra]
+
+# Sistema de permisos
+permissions:
+  # Permiso raíz
+  citywars.*:
+    description: Acceso completo a CityWars
+    children:
+      citywars.admin: true
+      citywars.city.*: true
+      citywars.citizen.*: true
+      citywars.siege.*: true
+    default: op
+
+  # Permisos de administración
+  citywars.admin:
+    description: Comandos de administración de CityWars
+    children:
+      citywars.admin.reload: true
+      citywars.admin.debug: true
+      citywars.admin.backup: true
+      citywars.admin.restore: true
+      citywars.admin.stats: true
+      citywars.admin.city: true
+      citywars.admin.region: true
+      citywars.admin.bypass: true
+    default: op
+
+  citywars.admin.reload:
+    description: Recargar configuración del plugin
+    default: op
+
+  citywars.admin.debug:
+    description: Ver información de debug
+    default: op
+
+  citywars.admin.backup:
+    description: Crear respaldos de datos
+    default: op
+
+  citywars.admin.restore:
+    description: Restaurar respaldos de datos
+    default: op
+
+  citywars.admin.stats:
+    description: Ver estadísticas del servidor
+    default: op
+
+  citywars.admin.city:
+    description: Gestión administrativa de ciudades
+    default: op
+
+  citywars.admin.region:
+    description: Gestión administrativa de regiones
+    default: op
+
+  citywars.admin.bypass:
+    description: Bypassear protecciones y restricciones
+    default: op
+
+  # Permisos de ciudad
+  citywars.city.*:
+    description: Todos los permisos de ciudad
+    children:
+      citywars.city.use: true
+      citywars.city.create: true
+      citywars.city.manage: true
+      citywars.city.claim: true
+      citywars.city.economy: true
+    default: true
+
+  citywars.city.use:
+    description: Usar comandos básicos de ciudad
+    default: true
+
+  citywars.city.create:
+    description: Crear nuevas ciudades
+    default: true
+
+  citywars.city.manage:
+    description: Gestionar ciudad (alcalde/asistentes)
+    default: false
+
+  citywars.city.claim:
+    description: Reclamar y abandonar chunks
+    default: false
+
+  citywars.city.economy:
+    description: Gestionar economía de la ciudad
+    default: false
+
+  # Permisos de ciudadano
+  citywars.citizen.*:
+    description: Todos los permisos de ciudadano
+    children:
+      citywars.citizen.use: true
+      citywars.citizen.stats: true
+      citywars.citizen.friends: true
+      citywars.citizen.mail: true
+    default: true
+
+  citywars.citizen.use:
+    description: Usar comandos básicos de ciudadano
+    default: true
+
+  citywars.citizen.stats:
+    description: Ver estadísticas de ciudadanos
+    default: true
+
+  citywars.citizen.friends:
+    description: Gestionar lista de amigos
+    default: true
+
+  citywars.citizen.mail:
+    description: Usar sistema de correo
+    default: true
+
+  # Permisos de asedio
+  citywars.siege.*:
+    description: Todos los permisos de asedio
+    children:
+      citywars.siege.use: true
+      citywars.siege.start: true
+      citywars.siege.participate: true
+      citywars.siege.surrender: true
+    default: true
+
+  citywars.siege.use:
+    description: Usar comandos básicos de asedio
+    default: true
+
+  citywars.siege.start:
+    description: Iniciar asedios
+    default: true
+
+  citywars.siege.participate:
+    description: Participar en asedios
+    default: true
+
+  citywars.siege.surrender:
+    description: Rendirse en asedios
+    default: true
+
+  # Permisos especiales
+  citywars.vip:
+    description: Beneficios VIP en CityWars
+    children:
+      citywars.city.create.multiple: true
+      citywars.siege.cooldown.reduced: true
+    default: false
+
+  citywars.city.create.multiple:
+    description: Crear múltiples ciudades
+    default: false
+
+  citywars.siege.cooldown.reduced:
+    description: Cooldown reducido para asedios
+    default: false
