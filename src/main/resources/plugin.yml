@@ -11,6 +11,7 @@ depend:
   - GemsEconomy
 softdepend:
   - Residence
+  - ExecutableItems
 
 # Permisos por defecto - cambiar
 default-permission: op
