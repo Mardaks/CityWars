@@ -315,3 +315,6 @@ experimental:
   dynamic-rewards: false
   ai-defenders: false
   siege-tournaments: false
+
+  siege:
+  flag-material: "BLACK_BANNER"  # Material del estandarte
