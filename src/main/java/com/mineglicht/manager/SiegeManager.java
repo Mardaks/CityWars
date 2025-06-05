@@ -33,6 +33,7 @@ public class SiegeManager {
     private final Map<UUID, BukkitTask> fireworkTasks; // flagId -> firework task
     private final Map<String, Set<UUID>> cityMembersMap = new ConcurrentHashMap<>();
     private final Map<String, Set<UUID>> cityLeadersMap = new ConcurrentHashMap<>();
+    private final long SIEGE_COOLDOWN_DURATION = 1 * 60 * 60 * 1000; // 1 hora en milisegundos
 
     // Configuración
     private FileConfiguration config;
@@ -60,7 +61,7 @@ public class SiegeManager {
         this.fireworkTasks = new ConcurrentHashMap<>();
 
         loadConfiguration();
-        loadSieges();
+//        loadSieges();
         startCooldownCleanupTask();
     }
 
@@ -438,7 +439,7 @@ public class SiegeManager {
     /**
      * Coloca el estandarte de asedio
      */
-    private void placeSiegeBanner(Location location) {
+    public void placeSiegeBanner(Location location) {
         Block block = location.getBlock();
         // Aquí iría la lógica para colocar el ítem personalizado definido en config.yml
         // Por ahora uso un bloque temporal
@@ -604,38 +605,38 @@ public class SiegeManager {
         minimumOnlinePercentage = config.getDouble("siege.minimum-online-percentage", 0.3); // 30%
     }
 
-    /**
-     * Carga los asedios desde la configuración
-     */
-    private void loadSieges() {
-        // Implementar carga desde archivo si es necesario
-        // Por ahora los asedios no persisten entre reinicios
-    }
+//    /**
+//     * Carga los asedios desde la configuración
+//     */
+//    private void loadSieges() {
+//        // Implementar carga desde archivo si es necesario
+//        // Por ahora los asedios no persisten entre reinicios
+//    }
+//
+//    /**
+//     * Guarda los asedios
+//     */
+//    public void saveSieges() {
+//        // Implementar guardado si es necesario
+//        // Por ahora los asedios no persisten entre reinicios
+//    }
 
-    /**
-     * Guarda los asedios
-     */
-    public void saveSieges() {
-        // Implementar guardado si es necesario
-        // Por ahora los asedios no persisten entre reinicios
-    }
-
-    /**
-     * Cierra el manager y limpia recursos
-     */
-    public void shutdown() {
-        // Finalizar todos los asedios activos
-        for (UUID siegeId : new HashSet<>(activeSieges.keySet())) {
-            endSiege(siegeId, SiegeState.CANCELLED);
-        }
-
-        // Cancelar todas las tareas
-        siegeTasks.values().forEach(BukkitTask::cancel);
-        fireworkTasks.values().forEach(BukkitTask::cancel);
-
-        // Guardar datos
-        saveSieges();
-    }
+//    /**
+//     * Cierra el manager y limpia recursos
+//     */
+//    public void shutdown() {
+//        // Finalizar todos los asedios activos
+//        for (UUID siegeId : new HashSet<>(activeSieges.keySet())) {
+//            endSiege(siegeId, SiegeState.CANCELLED);
+//        }
+//
+//        // Cancelar todas las tareas
+//        siegeTasks.values().forEach(BukkitTask::cancel);
+//        fireworkTasks.values().forEach(BukkitTask::cancel);
+//
+//        // Guardar datos
+//        saveSieges();
+//    }
 
     /**
      * Obtiene todos los miembros de una ciudad específica
@@ -866,5 +867,40 @@ public class SiegeManager {
         }
 
         plugin.getLogger().info("Cooldowns cargados correctamente.");
+    }
+
+    // Método para obtener el tiempo restante del cooldown (compatible con tu implementación actual)
+    public long getSiegeCooldownRemaining(UUID attackingCityId, UUID defendingCityId) {
+        String key = attackingCityId + ":" + defendingCityId;
+        UUID cooldownId = UUID.nameUUIDFromBytes(key.getBytes());
+        Long cooldownEnd = siegeCooldowns.get(cooldownId);
+
+        if (cooldownEnd == null) {
+            return 0; // No hay cooldown
+        }
+
+        long currentTime = System.currentTimeMillis();
+        long remainingTime = cooldownEnd - currentTime;
+
+        return Math.max(0, remainingTime); // Retorna 0 si ya expiró
+    }
+
+    // Método auxiliar para obtener el tiempo restante en formato legible
+    public String getFormattedCooldownRemaining(UUID attackingCityId, UUID defendingCityId) {
+        long remainingMs = getSiegeCooldownRemaining(attackingCityId, defendingCityId);
+
+        if (remainingMs <= 0) {
+            return "0 minutos";
+        }
+
+        long minutes = remainingMs / (60 * 1000);
+        long hours = minutes / 60;
+        minutes = minutes % 60;
+
+        if (hours > 0) {
+            return String.format("%d horas y %d minutos", hours, minutes);
+        } else {
+            return String.format("%d minutos", minutes);
+        }
     }
 }
