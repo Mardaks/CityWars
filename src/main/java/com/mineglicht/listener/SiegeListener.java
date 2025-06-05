@@ -132,11 +132,8 @@ public class SiegeListener implements Listener {
 
         // Permitir la colocación del estandarte y registrar el asedio
         Location flagLocation = event.getBlock().getLocation();
-        // 2 minutos en segundos, de tipo int
-        int SIEGE_COOLDOWN_DURATION = 2 * 60;
-        SiegeFlag siegeFlag = new SiegeFlag(playerCity.getId(), targetCity.getId(), player,
-                flagLocation, SIEGE_COOLDOWN_DURATION);
-
+        
+        // Iniciar el asedio usando el método correcto del SiegeManager
         siegeManager.startSiege(player, targetCity, flagLocation);
     }
 
@@ -149,65 +146,85 @@ public class SiegeListener implements Listener {
         Location location = event.getBlock().getLocation();
 
         // Verificar si el bloque es un estandarte de asedio
-        SiegeFlag siegeFlag = siegeManager.getSiegeFlagAtLocation(location);
-        if (siegeFlag != null) {
-            // Identificar las ciudades involucradas
-            City attackingCity = cityManager.getCity(siegeFlag.getAttackerCityId());
-            City defendingCity = cityManager.getCity(siegeFlag.getDefenderCityId());
+        if (siegeManager.isSiegeFlagAt(location)) {
+            UUID siegeFlagId = siegeManager.getSiegeFlagIdByCity(cityManager.getCityAtLocation(location).getId());
+            if (siegeFlagId != null) {
+                SiegeFlag siegeFlag = siegeManager.getSiege(siegeFlagId);
+                if (siegeFlag != null) {
+                    // Identificar las ciudades involucradas
+                    City attackingCity = cityManager.getCity(siegeFlag.getAttackingCityId());
+                    City defendingCity = cityManager.getCity(siegeFlag.getDefendingCityId());
 
-            // Cancelar el asedio
-            siegeManager.endSiege(siegeFlag.getId(), SiegeState.CANCELLED);
+                    // Cancelar el asedio
+                    siegeManager.endSiege(siegeFlagId, SiegeState.CANCELLED);
 
-            // Notificar a ambas ciudades
-            if (attackingCity != null) {
-                cityManager.broadcastMessageToCity(attackingCity.getId(),
-                        MessageUtils.formatMessage("siege.your_banner_destroyed",
-                                "%player%", player.getName()));
+                    // Notificar a ambas ciudades usando métodos correctos
+                    if (attackingCity != null) {
+                        siegeManager.notifyAttackers(attackingCity.getId(),
+                                MessageUtils.formatMessage("siege.your_banner_destroyed",
+                                        "%player%", player.getName()));
+                    }
+
+                    if (defendingCity != null) {
+                        siegeManager.notifyAttackers(defendingCity.getId(),
+                                MessageUtils.formatMessage("siege.enemy_banner_destroyed",
+                                        "%player%", player.getName()));
+                    }
+                }
             }
-
-            if (defendingCity != null) {
-                cityManager.broadcastMessageToCity(defendingCity.getId(),
-                        MessageUtils.formatMessage("siege.enemy_banner_destroyed",
-                                "%player%", player.getName()));
-            }
-
-            // No cancelar el evento para permitir que se rompa el estandarte
             return;
         }
 
         // Verificar si el bloque es una bandera de ciudad
-        City city = cityManager.getCityByFlagLocation(location);
+        // Primero verificamos si estamos en una ciudad
+        City city = cityManager.getCityAtLocation(location);
+        if (city != null) {
+            // Verificamos si el bloque roto es una bandera de ciudad
+            // Asumimos que las banderas de ciudad son del mismo material que los estandartes de asedio
+            // pero están en el centro/spawn de la ciudad
+            Block block = location.getBlock();
+            String flagMaterialName = plugin.getConfig().getString("siege.flag-material", "WHITE_BANNER");
+            Material flagMaterial;
+            try {
+                flagMaterial = Material.valueOf(flagMaterialName.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("Material de bandera inválido en config: " + flagMaterialName);
+                flagMaterial = Material.WHITE_BANNER;
+            }
+            
+            // Si no es el material correcto, no es una bandera de ciudad
+            if (block.getType() != flagMaterial) {
+                city = null;
+            }
+        }
+        
         if (city != null) {
             // Verificar si hay un asedio activo contra esta ciudad
             if (siegeManager.isCityUnderSiege(city.getId())) {
-                SiegeFlag activeFlag = siegeManager.getActiveSiegeFlag(city.getId());
-                if (activeFlag != null) {
-                    City attackerCity = cityManager.getCity(activeFlag.getAttackerCityId());
-                    if (attackerCity != null) {
-                        // Verificar si el jugador pertenece a la ciudad atacante
-                        City playerCity = cityManager.getPlayerCity(player.getUniqueId());
-                        if (playerCity != null && playerCity.getId().equals(attackerCity.getId())) {
-                            // El jugador atacante ha capturado la bandera
-                            siegeManager.endSiege(activeFlag.getId(), SiegeState.FLAG_CAPTURED);
+                UUID siegeFlagId = siegeManager.getSiegeFlagIdByCity(city.getId());
+                if (siegeFlagId != null) {
+                    SiegeFlag activeFlag = siegeManager.getSiege(siegeFlagId);
+                    if (activeFlag != null) {
+                        City attackerCity = cityManager.getCity(activeFlag.getAttackingCityId());
+                        if (attackerCity != null) {
+                            // Verificar si el jugador pertenece a la ciudad atacante
+                            City playerCity = citizenManager.getPlayerCity(player.getUniqueId());
+                            if (playerCity != null && playerCity.getId().equals(attackerCity.getId())) {
+                                // El jugador atacante ha capturado la bandera
+                                siegeManager.captureFlag(player, siegeFlagId);
 
-                            // Notificar a ambas ciudades
-                            cityManager.broadcastMessageToCity(attackerCity.getId(),
-                                    MessageUtils.formatMessage("siege.your_city_captured_flag",
-                                            "%city%", city.getName()));
+                                // Notificar a ambas ciudades
+                                siegeManager.notifyAttackers(attackerCity.getId(),
+                                        MessageUtils.formatMessage("siege.your_city_captured_flag",
+                                                "%city%", city.getName()));
 
-                            cityManager.broadcastMessageToCity(city.getId(),
-                                    MessageUtils.formatMessage("siege.your_flag_captured",
-                                            "%city%", attackerCity.getName()));
+                                siegeManager.notifyAttackers(city.getId(),
+                                        MessageUtils.formatMessage("siege.your_flag_captured",
+                                                "%city%", attackerCity.getName()));
 
-                            // Transferir fondos
-                            double transferAmount = economyManager.getCityBalance(city.getId()) * 0.5;
-                            economyManager.transferBetweenCities(city.getId(), attackerCity.getId(), transferAmount);
-
-                            // Iniciar fase de saqueo
-                            siegeManager.startLootPhase(city.getId(), attackerCity.getId());
-
-                            // No cancelar el evento para permitir que se rompa la bandera
-                            return;
+                                // El resto de la lógica se maneja en el SiegeManager
+                                return;
+                            }
                         }
                     }
                 }
@@ -227,8 +244,8 @@ public class SiegeListener implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onSiegeStart(SiegeStartEvent event) {
         SiegeFlag siegeFlag = event.getSiegeFlag();
-        City attackerCity = cityManager.getCity(siegeFlag.getAttackerCityId());
-        City defenderCity = cityManager.getCity(siegeFlag.getDefenderCityId());
+        City attackerCity = cityManager.getCity(siegeFlag.getAttackingCityId());
+        City defenderCity = cityManager.getCity(siegeFlag.getDefendingCityId());
 
         // Anunciar inicio de asedio al servidor
         if (attackerCity != null && defenderCity != null) {
@@ -247,8 +264,8 @@ public class SiegeListener implements Listener {
     public void onSiegeEnd(SiegeEndEvent event) {
         SiegeFlag siegeFlag = event.getSiegeFlag();
         SiegeState endState = event.getEndState();
-        City attackerCity = cityManager.getCity(siegeFlag.getAttackerCityId());
-        City defenderCity = cityManager.getCity(siegeFlag.getDefenderCityId());
+        City attackerCity = cityManager.getCity(siegeFlag.getAttackingCityId());
+        City defenderCity = cityManager.getCity(siegeFlag.getDefendingCityId());
 
         if (attackerCity == null || defenderCity == null) {
             return;
@@ -256,7 +273,7 @@ public class SiegeListener implements Listener {
 
         // Configurar cooldown entre estas ciudades
         int cooldownMinutes = plugin.getConfig().getInt("siege.cooldown_minutes", 60);
-        siegeManager.setSiegeCooldown(attackerCity.getId(), defenderCity.getId(), cooldownMinutes * 60 * 1000);
+        siegeManager.setCooldown(attackerCity.getId(), defenderCity.getId());
 
         // Anunciar fin de asedio según el estado
         String messageKey;
@@ -270,9 +287,6 @@ public class SiegeListener implements Listener {
             case CANCELLED:
                 messageKey = "siege.server_announce_cancelled";
                 break;
-            case ADMIN_STOPPED:
-                messageKey = "siege.server_announce_admin_stopped";
-                break;
             default:
                 messageKey = "siege.server_announce_end";
                 break;
@@ -283,16 +297,10 @@ public class SiegeListener implements Listener {
                         "%attacker%", attackerCity.getName(),
                         "%defender%", defenderCity.getName())
         );
-
-        // Si la bandera fue capturada, iniciar la fase de saqueo
-        if (endState == SiegeState.FLAG_CAPTURED) {
-            siegeManager.scheduleLootPhaseEnd(defenderCity.getId(),
-                    plugin.getConfig().getInt("siege.loot_phase_duration", 300));
-        }
     }
 
     /**
-     * Manejador para daño entre entidades (protector y jugadores)
+     * Manejador para daño entre entidades (protección y jugadores)
      */
     @EventHandler(priority = EventPriority.HIGH)
     public void onEntityDamage(EntityDamageByEntityEvent event) {
@@ -302,8 +310,8 @@ public class SiegeListener implements Listener {
             Player victim = (Player) event.getEntity();
 
             // Obtener las ciudades de ambos jugadores
-            City attackerCity = cityManager.getPlayerCity(attacker.getUniqueId());
-            City victimCity = cityManager.getPlayerCity(victim.getUniqueId());
+            City attackerCity = citizenManager.getPlayerCity(attacker.getUniqueId());
+            City victimCity = citizenManager.getPlayerCity(victim.getUniqueId());
 
             // Si ambos jugadores pertenecen a ciudades
             if (attackerCity != null && victimCity != null) {
@@ -316,7 +324,8 @@ public class SiegeListener implements Listener {
                 }
 
                 // Verificar si hay un asedio activo entre estas ciudades
-                boolean isActiveConflict = siegeManager.isActiveConflict(attackerCity.getId(), victimCity.getId());
+                boolean isActiveConflict = (siegeManager.isCityUnderSiege(attackerCity.getId()) || 
+                                          siegeManager.isCityUnderSiege(victimCity.getId()));
 
                 // Si no hay un conflicto activo y el PvP está desactivado entre ciudades, cancelar el daño
                 if (!isActiveConflict && !plugin.getConfig().getBoolean("city.allow_intercity_pvp", false)) {
@@ -324,17 +333,6 @@ public class SiegeListener implements Listener {
                     attacker.sendMessage(MessageUtils.formatMessage("city.no_active_conflict"));
                     return;
                 }
-            }
-        }
-
-        // Verificar si la entidad dañada es un protector de ciudad
-        if (plugin.getIntegration("ProtectorIntegration") != null) {
-            // Esta parte depende de la integración con el plugin de protectores
-            // Si el protector está siendo atacado durante un asedio, enviar subtítulo a los defensores
-            City protectorCity = cityManager.getCityByProtector(event.getEntity());
-            if (protectorCity != null && siegeManager.isCityUnderSiege(protectorCity.getId())) {
-                cityManager.showSubtitleToCity(protectorCity.getId(),
-                        "", "¡Protector atacado!", 10, 40, 10);
             }
         }
     }
@@ -357,7 +355,7 @@ public class SiegeListener implements Listener {
             }
 
             // Verificar si el jugador pertenece a una ciudad
-            City playerCity = cityManager.getPlayerCity(player.getUniqueId());
+            City playerCity = citizenManager.getPlayerCity(player.getUniqueId());
             if (playerCity == null) {
                 player.sendMessage(MessageUtils.formatMessage("siege.must_belong_to_city"));
                 event.setCancelled(true);
