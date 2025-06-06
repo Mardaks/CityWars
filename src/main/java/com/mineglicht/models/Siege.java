@@ -1,48 +1,136 @@
 package com.mineglicht.models;
 
-import org.bukkit.Location;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
+import org.bukkit.inventory.ItemStack;
 
 public class Siege {
 
-    private final String attackingCity;
-    private final String targetCity;
-    private final Location bannerLocation;
-    private final long startTime;
-    private boolean flagCaptured;
+    private City attackedCity; // Ciudad bajo ataque
+    private Set<UUID> attackers; // Jugadores atacantes (usando UUID para identificarlos)
+    private Set<UUID> defenders; // Jugadores defensores
+    private boolean isActive; // Si el asedio está en curso
+    private boolean isLooting; // Si el saqueo está activo (cuando la bandera de protección es destruida)
+    private long siegeStartTime; // Hora de inicio del asedio
+    private long siegeEndTime; // Hora estimada de finalización
+    private ItemStack siegeFlag; // Bandera de asedio (colocada por los atacantes)
+    private ItemStack protectionFlag; // Bandera de protección (Estandarte)
+    private int siegeDuration; // Duración total del asedio (en segundos)
+    private int lootingDuration; // Duración del saqueo (en segundos)
 
-    public Siege(String attackingCity, String targetCity, Location bannerLocation, long startTime) {
-        this.attackingCity = attackingCity;
-        this.targetCity = targetCity;
-        this.bannerLocation = bannerLocation;
-        this.startTime = startTime;
-        this.flagCaptured = false;
+    // Constructor
+    public Siege(City attackedCity, ItemStack siegeFlag, ItemStack protectionFlag) {
+        this.attackedCity = attackedCity;
+        this.attackers = new HashSet<>();
+        this.defenders = new HashSet<>();
+        this.isActive = false;
+        this.isLooting = false;
+        this.siegeFlag = siegeFlag;
+        this.protectionFlag = protectionFlag;
+        this.siegeDuration = 600; // Ejemplo: 10 minutos para el asedio
+        this.lootingDuration = 300; // Ejemplo: 5 minutos para el saqueo
     }
 
-    public String getAttackingCity() {
-        return attackingCity;
+    // Métodos de acceso (Getters y Setters)
+    public City getAttackedCity() {
+        return attackedCity;
     }
 
-    public String getTargetCity() {
-        return targetCity;
+    public Set<UUID> getAttackers() {
+        return attackers;
     }
 
-    public Location getBannerLocation() {
-        return bannerLocation;
+    public Set<UUID> getDefenders() {
+        return defenders;
     }
 
-    public long getStartTime() {
-        return startTime;
+    public boolean isActive() {
+        return isActive;
     }
 
-    public boolean isFlagCaptured() {
-        return flagCaptured;
+    public boolean isLooting() {
+        return isLooting;
     }
 
-    public void setFlagCaptured(boolean flagCaptured) {
-        this.flagCaptured = flagCaptured;
+    public long getSiegeStartTime() {
+        return siegeStartTime;
     }
 
-    public long getDuration() {
-        return System.currentTimeMillis() - startTime;
+    public long getSiegeEndTime() {
+        return siegeEndTime;
+    }
+
+    public ItemStack getSiegeFlag() {
+        return siegeFlag;
+    }
+
+    public ItemStack getProtectionFlag() {
+        return protectionFlag;
+    }
+
+    public int getSiegeDuration() {
+        return siegeDuration;
+    }
+
+    public int getLootingDuration() {
+        return lootingDuration;
+    }
+
+    // Métodos para actualizar el estado del asedio
+
+    // Inicia el asedio
+    public void iniciarAsedio() {
+        this.isActive = true;
+        this.siegeStartTime = System.currentTimeMillis();
+        this.siegeEndTime = this.siegeStartTime + (siegeDuration * 1000);
+    }
+
+    // Termina el asedio
+    public void terminarAsedio() {
+        this.isActive = false;
+        this.siegeEndTime = System.currentTimeMillis();
+    }
+
+    // Activa el modo saqueo
+    public void iniciarSaqueo() {
+        this.isLooting = true;
+    }
+
+    // Finaliza el saqueo
+    public void terminarSaqueo() {
+        this.isLooting = false;
+    }
+
+    // Agregar atacantes y defensores
+    public void addAtacante(UUID attackerId) {
+        this.attackers.add(attackerId);
+    }
+
+    public void addDefensor(UUID defenderId) {
+        this.defenders.add(defenderId);
+    }
+
+    // Remover atacantes y defensores
+    public void removerAtacante(UUID attackerId) {
+        this.attackers.remove(attackerId);
+    }
+
+    public void removerDefensor(UUID defenderId) {
+        this.defenders.remove(defenderId);
+    }
+
+    // Verificar si el asedio puede comenzar (por ejemplo, si la ciudad tiene
+    // suficiente defensa)
+    public boolean puedeIniciarAsedio() {
+        return attackers.size() > 0 && defenders.size() > 0; // Se puede ajustar según las reglas
+    }
+
+    // Actualizar el estado de las banderas y la protección
+    public void checkFlagsStatus() {
+        if (protectionFlag == null) { // Si la bandera de protección ha sido destruida
+            iniciarSaqueo();
+        }
     }
 }
