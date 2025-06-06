@@ -6,8 +6,8 @@
 # Configuración de Integración con GemsEconomy
 gemseconomy:
   enabled: true
-  tax_currency: "gems"  # Moneda principal para impuestos
-  default_currency: "gems"
+  tax_currency: "glitchcoin"  # Moneda principal para impuestos
+  default_currency: "glitchcoin"
 
 # Configuración de Impuestos
 taxes:
@@ -33,26 +33,14 @@ city_banks:
 # Formato: city_id: bank_account_uuid
 cityBanks:
   # Ejemplo de ciudades (estos son UUIDs de ejemplo)
-  "a1b2c3d4-e5f6-7890-abcd-ef1234567890": "bank1a2b-3c4d-5e6f-7890-123456789abc"
-  "b2c3d4e5-f6g7-8901-bcde-f12345678901": "bank2b3c-4d5e-6f7g-8901-234567890bcd"
-  "c3d4e5f6-g7h8-9012-cdef-123456789012": "bank3c4d-5e6f-7g8h-9012-345678901cde"
+  
 
 # Configuración de Monedas
 currencies:
   gems:
-    symbol: "💎"
-    name: "Gems"
+    symbol: ""
+    name: "glitchcoin"
     decimal_places: 2
-
-  gold:
-    symbol: "🪙"
-    name: "Gold"
-    decimal_places: 0
-
-  tokens:
-    symbol: "🎫"
-    name: "Tokens"
-    decimal_places: 0
 
 # Configuración de Formato de Dinero
 money_format:
