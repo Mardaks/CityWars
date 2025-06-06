@@ -2,9 +2,6 @@ package com.mineglicht.commands;
 
 import com.mineglicht.cityWars;
 import com.mineglicht.config.Messages;
-import com.mineglicht.manager.CityManager;
-import com.mineglicht.manager.CitizenManager;
-import com.mineglicht.manager.EconomyManager;
 import com.mineglicht.models.City;
 import com.mineglicht.util.MessageUtils;
 

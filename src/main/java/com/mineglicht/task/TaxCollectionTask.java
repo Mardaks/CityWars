@@ -1,9 +1,6 @@
 package com.mineglicht.task;
 
 import com.mineglicht.cityWars;
-import com.mineglicht.manager.CityManager;
-import com.mineglicht.manager.CitizenManager;
-import com.mineglicht.manager.EconomyManager;
 import com.mineglicht.models.City;
 import com.mineglicht.models.Citizen;
 import com.mineglicht.util.MessageUtils;

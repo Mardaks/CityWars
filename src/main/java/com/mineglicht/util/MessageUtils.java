@@ -1,6 +1,5 @@
 package com.mineglicht.util;
 
-import com.mineglicht.manager.CitizenManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;

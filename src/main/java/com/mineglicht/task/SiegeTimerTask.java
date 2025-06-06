@@ -1,7 +1,6 @@
 package com.mineglicht.task;
 
 import com.mineglicht.cityWars;
-import com.mineglicht.manager.SiegeManager;
 import com.mineglicht.models.City;
 import com.mineglicht.models.SiegeFlag;
 import com.mineglicht.models.SiegeState;
