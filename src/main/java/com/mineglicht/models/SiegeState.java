@@ -37,7 +37,12 @@ public enum SiegeState {
     /**
      * En período de cooldown después de un asedio
      */
-    COOLDOWN;
+    COOLDOWN,
+
+    /**
+     * En período de cooldown después de un asedio
+     */
+    TIMEOUT;
 
     /**
      * Verifica si el estado actual permite un ataque

@@ -732,7 +732,7 @@ public class CityCommands implements CommandExecutor, TabCompleter {
 
             if (economyManager.withdrawCityBank(city, amount)) {
                 // Usar la moneda predeterminada del servidor para el depósito
-                String defaultCurrency = plugin.getConfig().getString("economy.default-currency", "glitchcoins");
+                String defaultCurrency = plugin.getConfig().getString("economy.default-currency", "glichtcoin");
                 if (economyManager.depositCurrency(player, defaultCurrency, amount)) {
                     player.sendMessage(Messages.PREFIX + ChatColor.GREEN +
                             "Has retirado $" + amount + " del banco de la ciudad.");

@@ -100,20 +100,20 @@ public class cityWars extends JavaPlugin {
             fullyLoaded = true;
 
             long loadTime = System.currentTimeMillis() - startTime;
-            getLogger().info("&a╔══════════════════════════════════════╗");
-            getLogger().info("&a║           CITYWARS PLUGIN            ║");
-            getLogger().info("&a║                                      ║");
-            getLogger().info("&a║  ✓ Configuración cargada             ║");
-            getLogger().info("&a║  ✓ Integraciones inicializadas       ║");
-            getLogger().info("&a║  ✓ Managers inicializados            ║");
-            getLogger().info("&a║  ✓ Listeners registrados             ║");
-            getLogger().info("&a║  ✓ Comandos registrados              ║");
-            getLogger().info("&a║  ✓ API disponible                    ║");
-            getLogger().info("&a║  ✓ Tareas programadas iniciadas      ║");
-            getLogger().info("&a║                                      ║");
-            getLogger().info("&a║  Tiempo de carga: " + loadTime + "ms"
-                    + " ".repeat(Math.max(0, 16 - String.valueOf(loadTime).length())) + "║");
-            getLogger().info("&a╚══════════════════════════════════════╝");
+            getLogger().info("§a┌──────────────────────────────────────┐");
+            getLogger().info("§a│           CITYWARS PLUGIN            │");
+            getLogger().info("§a│                                      │");
+            getLogger().info("§a│  ✓ Configuración cargada             │");
+            getLogger().info("§a│  ✓ Integraciones inicializadas       │");
+            getLogger().info("§a│  ✓ Managers inicializados            │");
+            getLogger().info("va│  ✓ Listeners registrados             │");
+            getLogger().info("§a│  ✓ Comandos registrados              │");
+            getLogger().info("§a│  ✓ API disponible                    │");
+            getLogger().info("§a│  ✓ Tareas programadas iniciadas      │");
+            getLogger().info("§a│                                      │");
+            getLogger().info("§a│  Tiempo de carga: " + loadTime + "ms"
+                    + " ".repeat(Math.max(0, 16 - String.valueOf(loadTime).length())) + "│");
+            getLogger().info("§a└──────────────────────────────────────┘");
 
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Error crítico durante la inicialización del plugin", e);
@@ -124,9 +124,9 @@ public class cityWars extends JavaPlugin {
     @Override
     public void onDisable() {
         if (fullyLoaded) {
-            getLogger().info("&e╔══════════════════════════════════════╗");
-            getLogger().info("&e║        DESHABILITANDO CITYWARS       ║");
-            getLogger().info("&e╚══════════════════════════════════════╝");
+            getLogger().info("§e┌──────────────────────────────────────┐");
+            getLogger().info("§e│        DESHABILITANDO CITYWARS       │");
+            getLogger().info("§e└──────────────────────────────────────┘");
 
             // Detener tareas programadas
             stopTasks();
@@ -137,7 +137,7 @@ public class cityWars extends JavaPlugin {
             // Limpiar recursos
             cleanup();
 
-            getLogger().info("&c║  ✓ Plugin deshabilitado correctamente   ║");
+            getLogger().info("§c|  ✓ Plugin deshabilitado correctamente   |");
         }
 
         // Limpiar instancia singleton
@@ -149,7 +149,7 @@ public class cityWars extends JavaPlugin {
      */
     private boolean initializeConfiguration() {
         try {
-            getLogger().info("&6Inicializando configuración...");
+            getLogger().info("§6Inicializando configuración...");
 
             // Crear carpeta de configuración si no existe
             if (!getDataFolder().exists()) {
@@ -168,7 +168,7 @@ public class cityWars extends JavaPlugin {
             // Inicializar Settings
             Settings.initialize(configManager.getConfig());
 
-            getLogger().info("&a✓ Configuración inicializada correctamente");
+            getLogger().info("§a✓ Configuración inicializada correctamente");
             return true;
 
         } catch (Exception e) {
@@ -182,7 +182,7 @@ public class cityWars extends JavaPlugin {
      */
     private boolean initializeIntegrations() {
         try {
-            getLogger().info("&6Inicializando integraciones...");
+            getLogger().info("§6Inicializando integraciones...");
 
             PluginManager pm = getServer().getPluginManager();
 
@@ -190,13 +190,13 @@ public class cityWars extends JavaPlugin {
             if (pm.getPlugin("GemsEconomy") != null) {
                 gemsEconomyIntegration = new GemsEconomyIntegration(this);
                 if (gemsEconomyIntegration.isEnabled()) {
-                    getLogger().info("&a✓ GemsEconomy integrado correctamente");
+                    getLogger().info("§a✓ GemsEconomy integrado correctamente");
                 } else {
-                    getLogger().severe("&c✗ Error al integrar GemsEconomy - Plugin crítico");
+                    getLogger().severe("§c✗ Error al integrar GemsEconomy - Plugin crítico");
                     return false;
                 }
             } else {
-                getLogger().severe("&c✗ GemsEconomy no encontrado - Plugin requerido");
+                getLogger().severe("§c✗ GemsEconomy no encontrado - Plugin requerido");
                 return false;
             }
 
@@ -204,12 +204,12 @@ public class cityWars extends JavaPlugin {
             if (pm.getPlugin("Residence") != null) {
                 residenceIntegration = new ResidenceIntegration(this);
                 if (residenceIntegration.isEnabled()) {
-                    getLogger().info("&a✓ Residence integrado correctamente");
+                    getLogger().info("§a✓ Residence integrado correctamente");
                 } else {
-                    getLogger().warning("&e⚠ Error al integrar Residence - Continuando sin integración");
+                    getLogger().warning("§e⚠ Error al integrar Residence - Continuando sin integración");
                 }
             } else {
-                getLogger().info("&e⚠ Residence no encontrado - Funcionalidad limitada");
+                getLogger().info("§e⚠ Residence no encontrado - Funcionalidad limitada");
             }
 
             return true;
@@ -225,7 +225,7 @@ public class cityWars extends JavaPlugin {
      */
     private boolean initializeManagers() {
         try {
-            getLogger().info("&6Inicializando managers...");
+            getLogger().info("§6Inicializando managers...");
 
             // Orden de inicialización importante
             economyManager = new EconomyManager(this);
@@ -235,7 +235,7 @@ public class cityWars extends JavaPlugin {
             siegeManager = new SiegeManager(this, cityManager, economyManager, regionManager, citizenManager);
             taxManager = new TaxManager(this, cityManager, citizenManager, economyManager);
 
-            getLogger().info("&a✓ Managers inicializados correctamente");
+            getLogger().info("§a✓ Managers inicializados correctamente");
             return true;
 
         } catch (Exception e) {
@@ -249,7 +249,7 @@ public class cityWars extends JavaPlugin {
      */
     private void loadData() {
         try {
-            getLogger().info("&6Cargando datos...");
+            getLogger().info("§6Cargando datos...");
 
             // Cargar en orden de dependencias
             regionManager.loadRegions();
@@ -258,7 +258,7 @@ public class cityWars extends JavaPlugin {
             economyManager.loadEconomyData();
             siegeManager.loadCooldowns();
 
-            getLogger().info("&a✓ Datos cargados correctamente");
+            getLogger().info("§a✓ Datos cargados correctamente");
 
         } catch (Exception e) {
             getLogger().log(Level.WARNING, "Error al cargar algunos datos", e);
@@ -270,18 +270,18 @@ public class cityWars extends JavaPlugin {
      */
     private void registerListeners() {
         try {
-            getLogger().info("&6Registrando listeners...");
+            getLogger().info("§6Registrando listeners...");
 
             PluginManager pm = getServer().getPluginManager();
 
             // Descomentar cuando tengas los listeners implementados
             pm.registerEvents(new PlayerListener(this), this);
             // pm.registerEvents(new CityListener(this), this);
-            // pm.registerEvents(new SiegeListener(this), this);
-            // pm.registerEvents(new BlockListener(this), this);
+            pm.registerEvents(new SiegeListener(this), this);
+            pm.registerEvents(new BlockListener(this), this);
             // pm.registerEvents(new ProtectionListener(this), this);
 
-            getLogger().info("&a✓ Listeners registrados correctamente (actualmente comentados)");
+            getLogger().info("§a✓ Listeners registrados correctamente (actualmente comentados)");
 
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Error al registrar listeners", e);
@@ -293,7 +293,7 @@ public class cityWars extends JavaPlugin {
      */
     private void registerCommands() {
         try {
-            getLogger().info("&6Registrando comandos...");
+            getLogger().info("§6Registrando comandos...");
 
             // Inicializar AdminCommand con validaciones
             this.adminCommand = AdminCommand.initialize(this);
@@ -323,7 +323,7 @@ public class cityWars extends JavaPlugin {
             this.getCommand("citizen").setTabCompleter(this.citizenCommands);
             this.getCommand("siege").setTabCompleter(this.siegeCommands);
 
-            getLogger().info("&a✓ Comandos registrados correctamente");
+            getLogger().info("§a✓ Comandos registrados correctamente");
 
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Error al registrar comandos", e);
@@ -337,11 +337,11 @@ public class cityWars extends JavaPlugin {
      */
     private void initializeAPI() {
         try {
-            getLogger().info("&6Inicializando API...");
+            getLogger().info("§6Inicializando API...");
 
             api = new CityWarsAPIImpl();
 
-            getLogger().info("&a✓ API inicializada correctamente");
+            getLogger().info("§a✓ API inicializada correctamente");
 
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Error al inicializar API", e);
@@ -353,13 +353,13 @@ public class cityWars extends JavaPlugin {
      */
     private void initializeTasks() {
         try {
-            getLogger().info("&6Inicializando tareas programadas...");
+            getLogger().info("§6Inicializando tareas programadas...");
 
             // Tarea de recolección de impuestos (cada 24 horas)
             long taxInterval = Settings.TAX_COLLECTION_INTERVAL * 20L; // Convertir a ticks
             taxCollectionTask = new TaxCollectionTask(this).runTaskTimerAsynchronously(this, taxInterval, taxInterval);
 
-            getLogger().info("&a✓ Tareas programadas iniciadas correctamente");
+            getLogger().info("§a✓ Tareas programadas iniciadas correctamente");
 
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Error al inicializar tareas programadas", e);
@@ -371,7 +371,7 @@ public class cityWars extends JavaPlugin {
      */
     private void stopTasks() {
         try {
-            getLogger().info("&6Deteniendo tareas programadas...");
+            getLogger().info("§6Deteniendo tareas programadas...");
 
             if (taxCollectionTask != null && !taxCollectionTask.isCancelled()) {
                 taxCollectionTask.cancel();
@@ -385,7 +385,7 @@ public class cityWars extends JavaPlugin {
                 siegeCooldownTask.cancel();
             }
 
-            getLogger().info("&a✓ Tareas programadas detenidas");
+            getLogger().info("§a✓ Tareas programadas detenidas");
 
         } catch (Exception e) {
             getLogger().log(Level.WARNING, "Error al detener tareas programadas", e);
@@ -397,7 +397,7 @@ public class cityWars extends JavaPlugin {
      */
     private void saveData() {
         try {
-            getLogger().info("&6Guardando datos...");
+            getLogger().info("§6Guardando datos...");
 
             cityManager.saveCities();
             citizenManager.saveCitizens();
@@ -405,7 +405,7 @@ public class cityWars extends JavaPlugin {
             economyManager.saveEconomyData();
             siegeManager.saveCooldowns();
 
-            getLogger().info("&a✓ Datos guardados correctamente");
+            getLogger().info("§a✓ Datos guardados correctamente");
 
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Error al guardar datos", e);
@@ -417,14 +417,14 @@ public class cityWars extends JavaPlugin {
      */
     private void cleanup() {
         try {
-            getLogger().info("&6Limpiando recursos...");
+            getLogger().info("§6Limpiando recursos...");
 
             // Limpiar referencias
             if (api != null) {
                 api = null;
             }
 
-            getLogger().info("&a✓ Recursos limpiados");
+            getLogger().info("§a✓ Recursos limpiados");
 
         } catch (Exception e) {
             getLogger().log(Level.WARNING, "Error al limpiar recursos", e);
@@ -436,7 +436,7 @@ public class cityWars extends JavaPlugin {
      */
     public boolean reloadPlugin() {
         try {
-            getLogger().info("&6Recargando plugin...");
+            getLogger().info("§6Recargando plugin...");
 
             // Guardar datos actuales
             saveData();
@@ -449,7 +449,7 @@ public class cityWars extends JavaPlugin {
             // Recargar datos
             loadData();
 
-            getLogger().info("&a✓ Plugin recargado correctamente");
+            getLogger().info("§a✓ Plugin recargado correctamente");
             return true;
 
         } catch (Exception e) {

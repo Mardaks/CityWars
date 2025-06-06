@@ -3,47 +3,8 @@
 # Estructura compatible con CitizenManager.java
 
 # Ejemplo de ciudadano (UUID del jugador como clave principal)
-550e8400-e29b-41d4-a716-446655440002:
-  # UUID de la ciudad a la que pertenece el ciudadano
-  cityId: "550e8400-e29b-41d4-a716-446655440000"
-  # Fecha en que se unió a la ciudad (timestamp en milisegundos)
-  joinDate: 1704067200000
 
-# Segundo ciudadano de ejemplo
-550e8400-e29b-41d4-a716-446655440003:
-  cityId: "550e8400-e29b-41d4-a716-446655440000"
-  joinDate: 1704153600000
 
-# Tercer ciudadano de ejemplo (de otra ciudad)
-660e8400-e29b-41d4-a716-446655440002:
-  cityId: "660e8400-e29b-41d4-a716-446655440000"
-  joinDate: 1704240000000
-
-# Cuarto ciudadano de ejemplo
-660e8400-e29b-41d4-a716-446655440003:
-  cityId: "660e8400-e29b-41d4-a716-446655440000"
-  joinDate: 1704326400000
-
-# Ciudadanos de la ciudad de guerra
-770e8400-e29b-41d4-a716-446655440002:
-  cityId: "770e8400-e29b-41d4-a716-446655440000"
-  joinDate: 1704412800000
-
-770e8400-e29b-41d4-a716-446655440003:
-  cityId: "770e8400-e29b-41d4-a716-446655440000"
-  joinDate: 1704499200000
-
-770e8400-e29b-41d4-a716-446655440004:
-  cityId: "770e8400-e29b-41d4-a716-446655440000"
-  joinDate: 1704585600000
-
-770e8400-e29b-41d4-a716-446655440005:
-  cityId: "770e8400-e29b-41d4-a716-446655440000"
-  joinDate: 1704672000000
-
-770e8400-e29b-41d4-a716-446655440006:
-  cityId: "770e8400-e29b-41d4-a716-446655440000"
-  joinDate: 1704758400000
 
 # NOTAS IMPORTANTES:
 #
