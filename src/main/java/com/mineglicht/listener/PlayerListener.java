@@ -66,8 +66,8 @@
 //
 //        // Verificar si el jugador pertenece a una ciudad
 //        Citizen citizen = citizenManager.getCitizen(playerId);
-//        if (citizen != null && citizen.getCityId() != null) {
-//            City city = cityManager.getCity(citizen.getCityId());
+//        if (citizen != null && citizen.getId() != null) {
+//            City city = cityManager.getCity(citizen.getId());
 //
 //            if (city != null) {
 //                // Actualizar contador de ciudadanos online
@@ -100,8 +100,8 @@
 //
 //        // Verificar si el jugador pertenece a una ciudad
 //        Citizen citizen = citizenManager.getCitizen(player.getUniqueId());
-//        if (citizen != null && citizen.getCityId() != null) {
-//            City city = cityManager.getCity(citizen.getCityId());
+//        if (citizen != null && citizen.getId() != null) {
+//            City city = cityManager.getCity(citizen.getId());
 //            if (city != null) {
 //                // Decrementar contador de ciudadanos online
 //                citizenManager.decrementCityOnlineCount(city.getId());
@@ -164,8 +164,8 @@
 //            Citizen citizen = citizenManager.getCitizen(player.getUniqueId());
 //
 //            // Si pertenece a otra ciudad e intenta colocar el estandarte
-//            if (citizen != null && citizen.getCityId() != null &&
-//                    !citizen.getCityId().equals(toCity.getId())) {
+//            if (citizen != null && citizen.getId() != null &&
+//                    !citizen.getId().equals(toCity.getId())) {
 //
 //                // Verificar si la ciudad tiene suficientes jugadores para ser asediada
 //                double onlinePercentage = citizenManager.getOnlineCitizenPercentage(toCity.getId());
@@ -198,8 +198,8 @@
 //
 //        // Verificar si el jugador estaba defendiendo una ciudad bajo asedio
 //        Citizen citizen = citizenManager.getCitizen(player.getUniqueId());
-//        if (citizen != null && citizen.getCityId() != null) {
-//            City city = cityManager.getCity(citizen.getCityId());
+//        if (citizen != null && citizen.getId() != null) {
+//            City city = cityManager.getCity(citizen.getId());
 //            if (city != null && plugin.getSiegeManager().isCityUnderSiege(city.getId())) {
 //                // Notificar a los atacantes
 //                plugin.getSiegeManager().notifyAttackers(city.getId(),
@@ -218,8 +218,8 @@
 //
 //        // Verificar si el jugador pertenece a una ciudad
 //        Citizen citizen = citizenManager.getCitizen(player.getUniqueId());
-//        if (citizen != null && citizen.getCityId() != null) {
-//            City city = cityManager.getCity(citizen.getCityId());
+//        if (citizen != null && citizen.getId() != null) {
+//            City city = cityManager.getCity(citizen.getId());
 //            if (city != null && city.getSpawnLocation(city) != null) {
 //                // Si la ciudad tiene una ubicación de spawn configurada,
 //                // y no está bajo asedio, reaparecerá allí

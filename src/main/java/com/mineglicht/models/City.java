@@ -4,90 +4,72 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
-import java.util.EnumMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 public class City {
 
+    // Atributos basicos
     private final UUID id;
-    private final String name;
-    private final UUID ownerUUID;
-    private final World world;
+    private String name;
+    private World world;
+
+    // Limites de la region
     private Vector minPoint;
     private Vector maxPoint;
+
+    // Lista de ciudadanos
     private final Set<UUID> citizens;
-    private final Set<UUID> admins;
+
+    // Datos economicos
     private double bankBalance;
-    private long lastTaxCollection;
-    private int level;
-    private Location center;
-    private final Map<CityFlag, Boolean> flags;
-    private SiegeState siegeState; // Campo para el estado del asedio
     private double taxRate;
 
-//    private CitizenManager citizenManager;
+    // Centro de la ciudad (se calcula a partir de minPoint y maxPoint)
+    private Location center;
+
+    // Estado de la ciudad
+    private SiegeState siegeState;
+
+    // Nivel de la ciudad (inicia en 1 pero va subiendo)
+    private int level;
 
     // Constructor principal para crear nueva ciudad
-    public City(String name, UUID ownerUUID, World world, Vector minPoint, Vector maxPoint) {
+    public City(String name, World world, Vector minPoint, Vector maxPoint, double taxRate) {
         this.id = UUID.randomUUID();
         this.name = name;
-        this.ownerUUID = ownerUUID;
         this.world = world;
         this.minPoint = minPoint;
         this.maxPoint = maxPoint;
         this.citizens = new HashSet<>();
-        this.admins = new HashSet<>();
         this.bankBalance = 0.0;
-        this.lastTaxCollection = System.currentTimeMillis();
-        this.level = 1;
-        this.flags = new EnumMap<>(CityFlag.class);
-        this.siegeState = SiegeState.NONE; // Estado inicial sin asedio
         this.taxRate = 0.0;
-        
-        // Calcular centro basado en min y max points
-        this.center = calculateCenter();
-        
-        // Inicializar flags con valores por defecto
-        initializeDefaultFlags();
-
-        // Add owner as first citizen
-        citizens.add(ownerUUID);
+        this.center = calculateCenter(); // Calcular centro basado en min y max points
+        this.siegeState = SiegeState.NONE; // Estado inicial sin asedio
+        this.level = 1;
     }
 
     // Constructor para cargar ciudad desde archivo de configuración
-    public City(UUID id, String name, UUID ownerUUID, World world, Vector minPoint, Vector maxPoint, Location center, double taxRate) {
+    public City(UUID id, String name, World world, Vector minPoint, Vector maxPoint, Location center, double taxRate) {
         this.id = id;
         this.name = name;
-        this.ownerUUID = ownerUUID;
         this.world = world;
         this.minPoint = minPoint;
         this.maxPoint = maxPoint;
-        this.center = center;
         this.citizens = new HashSet<>();
-        this.admins = new HashSet<>();
         this.bankBalance = 0.0;
-        this.lastTaxCollection = System.currentTimeMillis();
-        this.level = 1;
-        this.flags = new EnumMap<>(CityFlag.class);
-        this.siegeState = SiegeState.NONE; // Estado inicial sin asedio
         this.taxRate = taxRate;
-        
-        // Inicializar flags con valores por defecto
-        initializeDefaultFlags();
-        
-        // Add owner as first citizen
-        citizens.add(ownerUUID);
+        this.center = center;
+        this.siegeState = SiegeState.NONE; // Estado inicial sin asedio
+        this.level = 1;
     }
 
-    private void initializeDefaultFlags() {
-        for (CityFlag flag : CityFlag.values()) {
-            flags.put(flag, flag.getDefaultValue());
-        }
-    }
-
+    /**
+     * Calculamos el centro de la ciudad
+     *
+     * @return Localizacion del centro de la ciudad
+     */
     private Location calculateCenter() {
         if (world == null || minPoint == null || maxPoint == null) {
             return null;
@@ -109,12 +91,16 @@ public class City {
         return name;
     }
 
-    public UUID getOwnerUUID() {
-        return ownerUUID;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public World getWorld() {
         return world;
+    }
+
+    public void setWorld(World world) {
+        this.world = world;
     }
 
     public Vector getMinPoint() {
@@ -151,19 +137,6 @@ public class City {
         this.center = center;
     }
 
-    /**
-     * Obtiene la localización de la Ciudad
-     *
-     * @param city La Ciudad
-     * @return La localización del spawn o null si la ciudad es null
-     */
-    public Location getSpawnLocation(City city) {
-        if (city == null) {
-            return null;
-        }
-        return city.getCenter();
-    }
-
     // Métodos para ciudadanos
     public Set<UUID> getCitizens() {
         return new HashSet<>(citizens);
@@ -174,9 +147,6 @@ public class City {
     }
 
     public boolean removeCitizen(UUID playerUUID) {
-        if (playerUUID.equals(ownerUUID)) {
-            return false;
-        }
         return citizens.remove(playerUUID);
     }
 
@@ -188,49 +158,6 @@ public class City {
         return citizens.size();
     }
 
-    // Este metodo era para contar a los jugadores conectado de una cuidad
-//    public int getOnlineCount() {
-//        if (citizenManager != null) {
-//            return citizenManager.getOnlineCitizensInCity(this.getId()).size();
-//        }
-//        return 0;
-//    }
-
-    // Métodos para administradores
-    public Set<UUID> getAdminIds() {
-        return new HashSet<>(admins);
-    }
-
-    public void setAdminIds(Set<UUID> adminIds) {
-        this.admins.clear();
-        this.admins.addAll(adminIds);
-    }
-
-    public boolean addAdmin(UUID playerUUID) {
-        return admins.add(playerUUID);
-    }
-
-    public boolean removeAdmin(UUID playerUUID) {
-        return admins.remove(playerUUID);
-    }
-
-    public boolean isAdmin(UUID playerUUID) {
-        return admins.contains(playerUUID);
-    }
-
-    // Métodos para flags
-    public boolean hasFlag(CityFlag flag) {
-        return flags.getOrDefault(flag, flag.getDefaultValue());
-    }
-
-    public void setFlag(CityFlag flag, boolean value) {
-        flags.put(flag, value);
-    }
-
-    public Map<CityFlag, Boolean> getAllFlags() {
-        return new EnumMap<>(flags);
-    }
-
     // Métodos económicos
     public double getBankBalance() {
         return bankBalance;
@@ -238,14 +165,6 @@ public class City {
 
     public void setBankBalance(double bankBalance) {
         this.bankBalance = bankBalance;
-    }
-
-    public long getLastTaxCollection() {
-        return lastTaxCollection;
-    }
-
-    public void setLastTaxCollection(long lastTaxCollection) {
-        this.lastTaxCollection = lastTaxCollection;
     }
 
     public int getLevel() {
