@@ -16,7 +16,7 @@ public class Citizen {
      * Constructor para crear un nuevo ciudadano
      *
      * @param citizenId UUID del jugador
-     * @param cityId   UUID de la ciudad a la que pertenece
+     * @param name   UUID de la ciudad a la que pertenece
      */
     public Citizen(UUID citizenId, String name, City ciudadania) {
         this.citizenId = UUID.randomUUID();
