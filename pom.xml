@@ -87,6 +87,7 @@
             <systemPath>${project.basedir}/libs/GemsEconomy-4.9.2.jar</systemPath>
         </dependency>
 
+        <!-- Executable Items Plugin - Instalación manual requerida -->
         <dependency>
             <groupId>com.ssomar</groupId>
             <artifactId>ExecutableItems</artifactId>

@@ -1,5 +1,6 @@
 package com.mineglicht.manager;
 
+import com.mineglicht.cityWars;
 import com.mineglicht.models.City;
 import com.mineglicht.manager.CitizenManager;
 import me.xanium.gemseconomy.api.GemsEconomyAPI;
@@ -19,7 +20,7 @@ import java.util.logging.Logger;
  */
 public class EconomyManager {
     
-    private final Plugin plugin;
+    private final cityWars plugin;
     private final Logger logger;
     private final GemsEconomyAPI gemsAPI;
     private final CitizenManager citizenManager;
