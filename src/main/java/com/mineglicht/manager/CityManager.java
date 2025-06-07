@@ -2,14 +2,12 @@ package com.mineglicht.manager;
 
 import com.mineglicht.cityWars;
 import com.mineglicht.models.City;
-import com.mineglicht.models.CityFlag;
 import com.mineglicht.models.SiegeState;
 import com.mineglicht.util.LocationUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.io.File;
