@@ -8,7 +8,8 @@ import java.util.UUID;
 public class Citizen {
 
     private final UUID citizenId;
-    String name; // Nombre del ciudadano (opcional)
+    private String name; // Nombre del ciudadano (opcional)
+    private City ciudadania; //Ciudad del jugador
     boolean isActive; // Si el ciudadano está activo o expulsado
 
     /**
@@ -17,9 +18,10 @@ public class Citizen {
      * @param citizenId UUID del jugador
      * @param cityId   UUID de la ciudad a la que pertenece
      */
-    public Citizen(UUID citizenId, String name) {
+    public Citizen(UUID citizenId, String name, City ciudadania) {
         this.citizenId = UUID.randomUUID();
         this.name = name;
+        this.ciudadania = ciudadania;
         this.isActive = true; // Por defecto, el ciudadano está activo}
     }
 
@@ -35,11 +37,34 @@ public class Citizen {
     public boolean isActive() {
         return isActive;
     }
+
+    public City getCity() {
+        return ciudadania;  // Obtener la ciudad a la que pertenece el ciudadano
+    }
     public void setName(String name) {
         this.name = name;
     }
 
     public void setActive(boolean active) {
         isActive = active;
+    }
+
+    public void setCity(City city) {
+        this.ciudadania = city;  // Actualiza la ciudad del ciudadano
+    }
+
+    // Método para comprobar si el ciudadano está en una ciudad específica
+    public boolean isInCity(City city) {
+        return this.ciudadania.equals(city);
+    }
+
+    @Override
+    public String toString() {
+        return "Citizen{" +
+               "citizenId=" + citizenId +
+               ", name='" + name + '\'' +
+               ", isActive=" + isActive +
+               ", city=" + ciudadania.getName() +  // Añadir nombre de la ciudad en la representación
+               '}';
     }
 }
