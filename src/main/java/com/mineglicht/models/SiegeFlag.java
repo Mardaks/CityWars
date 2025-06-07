@@ -70,18 +70,6 @@ public class SiegeFlag {
         this.location = location;
     }
 
-    // Método para destruir la bandera
-    public void destruirBandera() {
-        this.isActive = false;
-        // Aquí podrías agregar la lógica para eliminar el ítem de la ubicación en el mundo
-    }
-
-    // Método para restaurar la bandera (si se requiere)
-    public void restaurarBandera() {
-        this.isActive = true;
-        this.placedTime = System.currentTimeMillis();  // Resetear el tiempo de colocación
-    }
-
     // Método para mostrar información básica sobre la bandera
     @Override
     public String toString() {
