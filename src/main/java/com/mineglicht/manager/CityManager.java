@@ -2,7 +2,6 @@ package com.mineglicht.manager;
 
 import com.mineglicht.cityWars;
 import com.mineglicht.models.City;
-import com.mineglicht.models.CityFlag;
 import com.mineglicht.models.SiegeState;
 import com.mineglicht.util.LocationUtils;
 import org.bukkit.Location;
@@ -105,7 +104,7 @@ public class CityManager {
 //     * Expandir el territorio de la ciudad en la direccion que el jugador mira
 //     *
 //     * @param city Ciudad donde se va a expandir el territorio
-//     * @param player Jugador que mira a una dirrecion
+//     * @param player Jugador que mira a una direcion
 //     * @param blocks Cantidad de bloques a expandir
 //     * @return Retorna true si se pudo expandir
 //     */
@@ -137,7 +136,7 @@ public class CityManager {
      * Obtener ciudad por nombre
      *
      * @param name Nombre de Ciudad
-     * @return devuelve null si coincide el nombre con otra ciudad
+     * @return Retorna la ciudad si coincide con alguno que ya tenga guardado en su lista
      */
     public City getCityByName(String name) {
         for (City city : cities.values()) {
@@ -155,13 +154,13 @@ public class CityManager {
      * @param citizenId UUID del jugador
      * @return Retorna
      */
-    public boolean isCitizen(UUID cityId, UUID citizenId) {
+    public boolean isCitizenByCity(UUID cityId, UUID citizenId) {
         City city = getCity(cityId);
         return city != null && city.isCitizen(citizenId);
     }
 
     /**
-     * Obtener el total de ciudadanos de la ciudad
+     * Obtener la cantidad de ciudadanos de la ciudad
      *
      * @param cityId UUID de la ciudad
      * @return Retorna la cantidad de ciudadanos que tiene la ciudad
