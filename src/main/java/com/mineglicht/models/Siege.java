@@ -1,5 +1,6 @@
 package com.mineglicht.models;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -13,11 +14,12 @@ public class Siege {
     private Set<UUID> defenders; // Jugadores defensores
     private boolean isActive; // Si el asedio está en curso
     private boolean isLooting; // Si el saqueo está activo (cuando la bandera de protección es destruida)
-    private long siegeStartTime; // Hora de inicio del asedio
-    private long siegeEndTime; // Hora estimada de finalización
+    private LocalDateTime siegeStartTime; // Hora de inicio del asedio
+    private LocalDateTime siegeEndTime; // Hora estimada de finalización
     private ItemStack siegeFlag; // Bandera de asedio (colocada por los atacantes)
     private ItemStack protectionFlag; // Bandera de protección (Estandarte)
     private int siegeDuration; // Duración total del asedio (en segundos)
+    private SiegeState state; //
     private int lootingDuration; // Duración del saqueo (en segundos)
 
     // Constructor
@@ -31,6 +33,14 @@ public class Siege {
         this.protectionFlag = protectionFlag;
         this.siegeDuration = 600; // Ejemplo: 10 minutos para el asedio
         this.lootingDuration = 300; // Ejemplo: 5 minutos para el saqueo
+    }
+
+    public Siege(UUID randomUUID, City attackedCity, Set<UUID> attackers, LocalDateTime siegeStartTime,
+            SiegeState state) {
+        this.attackedCity = attackedCity;
+        this.attackers = attackers;
+        this.siegeStartTime = siegeStartTime;
+        this.state = state;
     }
 
     // Métodos de acceso (Getters y Setters)
@@ -54,11 +64,11 @@ public class Siege {
         return isLooting;
     }
 
-    public long getSiegeStartTime() {
+    public LocalDateTime getSiegeStartTime() {
         return siegeStartTime;
     }
 
-    public long getSiegeEndTime() {
+    public LocalDateTime getSiegeEndTime() {
         return siegeEndTime;
     }
 
@@ -83,14 +93,15 @@ public class Siege {
     // Inicia el asedio
     public void iniciarAsedio() {
         this.isActive = true;
-        this.siegeStartTime = System.currentTimeMillis();
-        this.siegeEndTime = this.siegeStartTime + (siegeDuration * 1000);
+        this.siegeStartTime = LocalDateTime.now();
+        // siegeDuration está en segundos
+        this.siegeEndTime = this.siegeStartTime.plusSeconds(siegeDuration);
     }
 
     // Termina el asedio
     public void terminarAsedio() {
         this.isActive = false;
-        this.siegeEndTime = System.currentTimeMillis();
+        this.siegeEndTime = LocalDateTime.now();
     }
 
     // Activa el modo saqueo
