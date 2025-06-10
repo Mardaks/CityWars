@@ -7,6 +7,7 @@ import com.mineglicht.config.*;
 import com.mineglicht.integration.*;
 import com.mineglicht.listener.*;
 import com.mineglicht.manager.*;
+import com.mineglicht.models.City;
 import com.mineglicht.task.*;
 
 import org.bukkit.plugin.PluginManager;
@@ -506,5 +507,10 @@ public class cityWars extends JavaPlugin {
 
     public boolean isFullyLoaded() {
         return fullyLoaded;
+    }
+
+    public City getCityByName(String cityName) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getCityByName'");
     }
 }

@@ -39,6 +39,7 @@ public class SiegeManager {
     private final EconomyManager economyManager;
     private final ExecutableItemsIntegration executableItems;
     private final CityManager cityManager;
+    private final CitizenManager citizenManager;
     
     // Estado de asedios activos
     private final Map<UUID, Siege> activeSieges;
@@ -150,7 +151,7 @@ public class SiegeManager {
         
         // Verificar cooldowns entre ciudades
         for (UUID attackerId : attackers) {
-            City attackerCity = cityManager.getCityByName(attackerId);
+            City attackerCity = citizenManager.getPlayerCity(attackerId);
             if (attackerCity != null && isCooldownActive(attackerCity, attackedCity)) {
                 LOGGER.info("No se puede iniciar asedio: cooldown activo entre ciudades");
                 return false;
@@ -269,7 +270,7 @@ public class SiegeManager {
         
         try {
             // Cambiar estado a saqueo
-            siege.setState(SiegeState.FLAG_CAPTURED);
+            cityManager.setSiegeState(attackedCity.getId(), SiegeState.FLAG_CAPTURED);
             
             // Desactivar protecciones adicionales (acceso a cofres, etc.)
             protectionManager.disableResidenceProtections(attackedCity);
