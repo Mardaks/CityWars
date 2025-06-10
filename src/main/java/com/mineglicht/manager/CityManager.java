@@ -23,8 +23,11 @@ public class CityManager {
     private final File citiesFile;
     private FileConfiguration citiesConfig;
 
-    public CityManager(cityWars plugin) {
+    private final EconomyManager economyManager;
+
+    public CityManager(cityWars plugin, EconomyManager economyManager) {
         this.plugin = plugin;
+        this.economyManager=economyManager;
         this.cities = new HashMap<>();
         this.citiesFile = new File(plugin.getDataFolder(), "cities.yml");
 
@@ -68,12 +71,12 @@ public class CityManager {
         World world = centerLocation.getWorld();
         City city = new City(name, world, minPoint, maxPoint, taxRate);
 
-//        // Creamos la cuenta bancaria de la ciudad
-//        boolean bankCreated = economyManager.createCityBank(city);
-//        if (!bankCreated) {
-//            // Limpiamos la region si falla la creacion del banco
-//            return null;
-//        }
+        // Creamos la cuenta bancaria de la ciudad
+        boolean bankCreated = economyManager.createCityBank(city);
+        if (!bankCreated) {
+            // Limpiamos la region si falla la creacion del banco
+            return null;
+       }
 
         cities.put(city.getId(), city);
         saveCities();
@@ -89,8 +92,8 @@ public class CityManager {
 //        // Eliminar la region de la ciudad
 //        regionManager.removeRegion(city.getId());
 
-//        // Eliminamos la cuenta bancaria de la ciudad
-//        economyManager.deleteCityBank(city.getId());
+       // Eliminamos la cuenta bancaria de la ciudad
+        economyManager.deleteCityBank(city);
 
         // Eliminamos la ciudad del map (Lista de ciudades) y guardamos
         cities.remove(city.getId());
@@ -176,24 +179,12 @@ public class CityManager {
      *
      * @param cityId UUID de la ciudad
      * @return Retorna el balance de la ciudad
-     */
-    public double getBankBalance(UUID cityId) {
-        City city = getCity(cityId);
-        return city != null ? city.getBankBalance() : 0.0;
-    }
-
-    /**
-     * Cambiar la cantidad del balance de la cuenta de la ciudad
-     *
-     * @param cityId UUID de la ciudad
-     * @param amount Cantidad por la que se cambia el balance
-     */
-    public void setBankBalance(UUID cityId, double amount) {
-        City city = getCity(cityId);
-        if (city != null) {
-            city.setBankBalance(amount);
-        }
-    }
+     
+     *public double getBankBalance(UUID cityId) {
+     *   City city = getCity(cityId);
+     *   return city != null ? city.getBankBalance() : 0.0;
+    *}
+        **/
 
     /**
      * Cambiar el nivel de la ciudad
