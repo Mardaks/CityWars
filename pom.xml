@@ -88,7 +88,7 @@
             <artifactId>gemseconomy</artifactId>
             <version>4.9.2</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/libs/GemsEconomy-4.9.2.jar</systemPath>
+            <systemPath>C:\Users\Luis\Documents\CITYWARS_PLUGIN\CityWars\libs\GemsEconomy-4.9.2.jar</systemPath>
         </dependency>
 
         <!-- Executable Items Plugin - Instalación manual requerida -->
