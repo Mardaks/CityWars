@@ -1,298 +1,723 @@
 package com.mineglicht.manager;
 
-import com.mineglicht.cityWars;
 import com.mineglicht.models.City;
-import com.mineglicht.models.SiegeState;
-import com.mineglicht.util.LocationUtils;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import com.sk89q.worldedit.math.BlockVector3;
+import me.xanium.gemseconomy.api.GemsEconomyAPI;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.util.Vector;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 public class CityManager {
-
-    private final cityWars plugin;
-    private final Map<UUID, City> cities;
+    
+    private final JavaPlugin plugin;
+    private final Map<String, City> cities;
+    private final Map<UUID, String> playerCities;
     private final File citiesFile;
     private FileConfiguration citiesConfig;
-
-    private final EconomyManager economyManager;
-
-    public CityManager(cityWars plugin, EconomyManager economyManager) {
+    
+    // Configuración
+    private int initialCitySize;
+    private double expansionCost;
+    private String expansionCurrency;
+    private int maxPlayersPerCity;
+    private LocalTime taxCollectionTime;
+    private double defaultTaxRate;
+    private int maxCityLevel;
+    private double levelUpCostMultiplier;
+    
+    public CityManager(JavaPlugin plugin) {
         this.plugin = plugin;
-        this.economyManager=economyManager;
-        this.cities = new HashMap<>();
+        this.cities = new ConcurrentHashMap<>();
+        this.playerCities = new ConcurrentHashMap<>();
         this.citiesFile = new File(plugin.getDataFolder(), "cities.yml");
-
+        
+        loadConfiguration();
         loadCities();
+        startTaxCollectionScheduler();
     }
-
-
+    
     /**
-     * Crear una ciudad con un nombre y una localizacion central
-     *
-     * @param name Nombre de la ciudad
-     * @param centerLocation Centro de la localizacion de la ciudad
-     * @param taxRate Cantidad de impuestos (por defecto 0.0)
-     * @return Retorna la ciudad y la guarda
+     * Carga la configuración del plugin
      */
-    public City createCity(String name, Location centerLocation, Double taxRate) {
-        // Validad si el nombre ya existe
-        if (getCityByName(name) != null) {
-            return null;
-        }
-
-        // Define el tamaño por default de la ciudad
-        int defaultCityRadius = 50; // 50 bloques en todas direcciones desde el centro
-
-        // Calcular min y max points en base al centro
-        double centerX = centerLocation.getX();
-        double centerY = centerLocation.getY();
-        double centerZ = centerLocation.getZ();
-
-        Vector minPoint = new Vector(
-                centerX - defaultCityRadius,
-                Math.max(centerY - defaultCityRadius, 0), // Don't go below Y=0
-                centerZ - defaultCityRadius);
-
-        Vector maxPoint = new Vector(
-                centerX + defaultCityRadius,
-                Math.min(centerY + defaultCityRadius, 255), // Don't go above build limit
-                centerZ + defaultCityRadius);
-
-        // Creamos la ciudad
-        World world = centerLocation.getWorld();
-        City city = new City(name, world, minPoint, maxPoint, taxRate);
-
-        // Creamos la cuenta bancaria de la ciudad
-        boolean bankCreated = economyManager.createCityBank(city);
-        if (!bankCreated) {
-            // Limpiamos la region si falla la creacion del banco
-            return null;
-       }
-
-        cities.put(city.getId(), city);
-        saveCities();
-
-        return city;
+    private void loadConfiguration() {
+        FileConfiguration config = plugin.getConfig();
+        
+        // Configuración de ciudades
+        this.initialCitySize = config.getInt("cities.initial-size", 50);
+        this.expansionCost = config.getDouble("cities.expansion-cost", 1000.0);
+        this.expansionCurrency = config.getString("cities.expansion-currency", "gems");
+        this.maxPlayersPerCity = config.getInt("cities.max-players", 20);
+        this.defaultTaxRate = config.getDouble("cities.default-tax-rate", 0.05);
+        this.maxCityLevel = config.getInt("cities.max-level", 10);
+        this.levelUpCostMultiplier = config.getDouble("cities.level-up-cost-multiplier", 1.5);
+        
+        // Configuración de impuestos
+        String taxTimeStr = config.getString("cities.tax-collection-time", "12:00");
+        this.taxCollectionTime = LocalTime.parse(taxTimeStr, DateTimeFormatter.ofPattern("HH:mm"));
+        
+        plugin.getLogger().info("Configuración de ciudades cargada:");
+        plugin.getLogger().info("- Tamaño inicial: " + initialCitySize);
+        plugin.getLogger().info("- Costo de expansión: " + expansionCost + " " + expansionCurrency);
+        plugin.getLogger().info("- Máximo jugadores: " + maxPlayersPerCity);
+        plugin.getLogger().info("- Hora de impuestos: " + taxCollectionTime);
     }
-
-    public boolean deleteCity(City city) {
-        if (city == null || !cities.containsKey(city.getId())) {
-            return false;
+    
+    /**
+     * Crea una nueva ciudad
+     */
+    public boolean createCity(String name, Player owner, Location location) {
+        if (cities.containsKey(name.toLowerCase())) {
+            return false; // Ciudad ya existe
         }
-
-//        // Eliminar la region de la ciudad
-//        regionManager.removeRegion(city.getId());
-
-       // Eliminamos la cuenta bancaria de la ciudad
-        economyManager.deleteCityBank(city);
-
-        // Eliminamos la ciudad del map (Lista de ciudades) y guardamos
-        cities.remove(city.getId());
+        
+        if (playerCities.containsKey(owner.getUniqueId())) {
+            return false; // El jugador ya tiene una ciudad
+        }
+        
+        if (!isValidCityLocation(location)) {
+            return false; // Ubicación no válida
+        }
+        
+        // Crear la ciudad
+        City city = new City(name, owner.getUniqueId(), location);
+        city.setMaxCitizens(maxPlayersPerCity);
+        city.setTaxRate(defaultTaxRate);
+        
+        // Agregar al mapa
+        cities.put(name.toLowerCase(), city);
+        playerCities.put(owner.getUniqueId(), name.toLowerCase());
+        
+        // Crear región de WorldGuard
+        createWorldGuardRegion(city);
+        
+        // Guardar datos
         saveCities();
-
+        
+        plugin.getLogger().info("Ciudad '" + name + "' creada por " + owner.getName() + " en " + locationToString(location));
         return true;
     }
-
-//    /**
-//     * Expandir el territorio de la ciudad en la direccion que el jugador mira
-//     *
-//     * @param city Ciudad donde se va a expandir el territorio
-//     * @param player Jugador que mira a una direcion
-//     * @param blocks Cantidad de bloques a expandir
-//     * @return Retorna true si se pudo expandir
-//     */
-//    public boolean expandCity(City city, Player player, int blocks) {
-//        if (city == null || !cities.containsKey(city.getId())) {
-//            return false;
-//        }
-//
-//        boolean expanded = regionManager.expandCityRegion(city, player, blocks);
-//
-//        if (expanded) {
-//            saveCities();
-//        }
-//
-//        return expanded;
-//    }
-
+    
     /**
-     * Obtenemos una ciudad por UUID
-     *
-     * @param cityId UUID de la ciudad
-     * @return Retorna la ciudad
+     * Valida si una ubicación es válida para crear una ciudad
      */
-    public City getCity(UUID cityId) {
-        return cities.get(cityId);
-    }
-
-    /**
-     * Obtener ciudad por nombre
-     *
-     * @param name Nombre de Ciudad
-     * @return Retorna la ciudad si coincide con alguno que ya tenga guardado en su lista
-     */
-    public City getCityByName(String name) {
+    private boolean isValidCityLocation(Location location) {
+        int minDistance = plugin.getConfig().getInt("cities.min-distance-between-cities", 200);
+        
         for (City city : cities.values()) {
-            if (city.getName().equalsIgnoreCase(name)) {
-                return city;
+            if (city.getCenterLocation().getWorld().equals(location.getWorld())) {
+                double distance = city.getCenterLocation().distance(location);
+                if (distance < minDistance) {
+                    return false;
+                }
             }
         }
-        return null;
+        return true;
     }
-
+    
     /**
-     * Verificar si un jugador es ciudadano de una ciudad
-     *
-     * @param cityId UUID de la ciudad
-     * @param citizenId UUID del jugador
-     * @return Retorna
+     * Crea una región de WorldGuard para la ciudad
      */
-    public boolean isCitizenByCity(UUID cityId, UUID citizenId) {
-        City city = getCity(cityId);
-        return city != null && city.isCitizen(citizenId);
-    }
-
-    /**
-     * Obtener la cantidad de ciudadanos de la ciudad
-     *
-     * @param cityId UUID de la ciudad
-     * @return Retorna la cantidad de ciudadanos que tiene la ciudad
-     */
-    public int getCitizenCount(UUID cityId) {
-        City city = getCity(cityId);
-        return city != null ? city.getCitizenCount() : 0;
-    }
-
-    // Metodos para gestionar los fondos bancarios de la ciudad
-
-    /**
-     * Obtener el balance total de la cuenta de la Ciudad
-     *
-     * @param cityId UUID de la ciudad
-     * @return Retorna el balance de la ciudad
-     
-     *public double getBankBalance(UUID cityId) {
-     *   City city = getCity(cityId);
-     *   return city != null ? city.getBankBalance() : 0.0;
-    *}
-        **/
-
-    /**
-     * Cambiar el nivel de la ciudad
-     *
-     * @param cityId UUID de la ciudad
-     * @param level Nivel a cambiar de la ciudad
-     */
-    public void setCityLevel(UUID cityId, int level) {
-        City city = getCity(cityId);
-        if (city != null) {
-            city.setLevel(level);
+    private void createWorldGuardRegion(City city) {
+        try {
+            Location center = city.getCenterLocation();
+            World world = center.getWorld();
+            
+            if (world == null) return;
+            
+            RegionManager regionManager = WorldGuard.getInstance()
+                    .getPlatform().getRegionContainer().get(BukkitAdapter.adapt(world));
+            
+            if (regionManager == null) return;
+            
+            // Calcular área de la ciudad
+            int size = getCurrentCitySize(city);
+            int halfSize = size / 2;
+            
+            BlockVector3 min = BlockVector3.at(
+                    center.getBlockX() - halfSize,
+                    0,
+                    center.getBlockZ() - halfSize
+            );
+            
+            BlockVector3 max = BlockVector3.at(
+                    center.getBlockX() + halfSize,
+                    world.getMaxHeight(),
+                    center.getBlockZ() + halfSize
+            );
+            
+            // Crear región
+            ProtectedCuboidRegion region = new ProtectedCuboidRegion(
+                    "city_" + city.getName().toLowerCase(),
+                    min,
+                    max
+            );
+            
+            // Configurar región
+            region.getOwners().addPlayer(city.getOwner());
+            region.setFlag(com.sk89q.worldguard.protection.flags.Flags.PVP, false);
+            region.setFlag(com.sk89q.worldguard.protection.flags.Flags.BUILD, com.sk89q.worldguard.protection.flags.StateFlag.State.DENY);
+            
+            // Agregar región
+            regionManager.addRegion(region);
+            
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "Error creando región de WorldGuard para la ciudad " + city.getName(), e);
         }
     }
-
+    
     /**
-     * Cambiar el estado de asedio de la ciudad
-     *
-     * @param cityId UUID de la ciudad
-     * @param siegeState Estado de asedio a cambiar de la ciudad
+     * Calcula el tamaño actual de la ciudad basado en expansiones
      */
-    public void setSiegeState(UUID cityId, SiegeState siegeState) {
-        City city = getCity(cityId);
-        if (city != null) {
-            city.setSiegeState(siegeState);
+    private int getCurrentCitySize(City city) {
+        int expansionSize = plugin.getConfig().getInt("cities.expansion-size-per-level", 25);
+        return initialCitySize + (city.getExpansionCount() * expansionSize);
+    }
+    
+    /**
+     * Permite a un jugador unirse a una ciudad
+     */
+    public boolean joinCity(Player player, String cityName) {
+        City city = cities.get(cityName.toLowerCase());
+        if (city == null) {
+            return false; // Ciudad no existe
+        }
+        
+        if (playerCities.containsKey(player.getUniqueId())) {
+            return false; // El jugador ya está en una ciudad
+        }
+        
+        if (city.getCitizens().size() >= city.getMaxCitizens()) {
+            return false; // Ciudad llena
+        }
+        
+        // Agregar ciudadano
+        city.addCitizen(player.getUniqueId());
+        playerCities.put(player.getUniqueId(), cityName.toLowerCase());
+        
+        // Actualizar región de WorldGuard
+        updateWorldGuardRegion(city);
+        
+        saveCities();
+        
+        plugin.getLogger().info("Jugador " + player.getName() + " se unió a la ciudad " + cityName);
+        return true;
+    }
+    
+    /**
+     * Permite a un jugador abandonar su ciudad
+     */
+    public boolean leaveCity(Player player) {
+        String cityName = playerCities.get(player.getUniqueId());
+        if (cityName == null) {
+            return false; // El jugador no está en una ciudad
+        }
+        
+        City city = cities.get(cityName);
+        if (city == null) {
+            return false; // Error de consistencia
+        }
+        
+        // Si es el dueño, no puede abandonar (debe transferir o eliminar)
+        if (city.getOwner().equals(player.getUniqueId())) {
+            return false;
+        }
+        
+        // Remover ciudadano
+        city.removeCitizen(player.getUniqueId());
+        playerCities.remove(player.getUniqueId());
+        
+        // Actualizar región de WorldGuard
+        updateWorldGuardRegion(city);
+        
+        saveCities();
+        
+        plugin.getLogger().info("Jugador " + player.getName() + " abandonó la ciudad " + cityName);
+        return true;
+    }
+    
+    /**
+     * Actualiza la región de WorldGuard con los miembros actuales
+     */
+    private void updateWorldGuardRegion(City city) {
+        try {
+            Location center = city.getCenterLocation();
+            World world = center.getWorld();
+            
+            if (world == null) return;
+            
+            RegionManager regionManager = WorldGuard.getInstance()
+                    .getPlatform().getRegionContainer().get(BukkitAdapter.adapt(world));
+            
+            if (regionManager == null) return;
+            
+            ProtectedRegion region = regionManager.getRegion("city_" + city.getName().toLowerCase());
+            if (region == null) return;
+            
+            // Limpiar miembros actuales
+            region.getMembers().clear();
+            
+            // Agregar todos los ciudadanos
+            for (UUID citizenId : city.getCitizens()) {
+                region.getMembers().addPlayer(citizenId);
+            }
+            
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "Error actualizando región de WorldGuard para la ciudad " + city.getName(), e);
         }
     }
-
+    
     /**
-     * Cargar las ciudades desde el archivo "cities.yml"
+     * Expande una ciudad (solo administradores pueden hacerlo gratis)
      */
-    public void loadCities() {
-        cities.clear();
-
+    public boolean expandCity(String cityName, Player player, boolean isAdmin) {
+        City city = cities.get(cityName.toLowerCase());
+        if (city == null) {
+            return false;
+        }
+        
+        if (!isAdmin && !city.getOwner().equals(player.getUniqueId())) {
+            return false; // Solo el dueño o admin puede expandir
+        }
+        
+        // Verificar límites de expansión
+        int maxExpansions = plugin.getConfig().getInt("cities.max-expansions-per-level", 2);
+        if (city.getExpansionCount() >= (city.getLevel() * maxExpansions)) {
+            return false; // Debe subir de nivel primero
+        }
+        
+        // Verificar y cobrar costo (solo si no es admin)
+        if (!isAdmin) {
+            if (!canAffordExpansion(player)) {
+                return false;
+            }
+            chargeExpansionCost(player);
+        }
+        
+        // Realizar expansión
+        city.setExpansionCount(city.getExpansionCount() + 1);
+        
+        // Actualizar región de WorldGuard
+        updateCityRegionSize(city);
+        
+        saveCities();
+        
+        plugin.getLogger().info("Ciudad " + cityName + " expandida por " + player.getName() + 
+                               (isAdmin ? " (admin)" : " (pagó " + expansionCost + " " + expansionCurrency + ")"));
+        return true;
+    }
+    
+    /**
+     * Verifica si el jugador puede pagar la expansión
+     */
+    private boolean canAffordExpansion(Player player) {
+        if (expansionCurrency.equalsIgnoreCase("gems")) {
+            return GemsEconomyAPI.getBalance(player.getUniqueId()) >= expansionCost;
+        }
+        // Aquí puedes agregar más tipos de moneda
+        return false;
+    }
+    
+    /**
+     * Cobra el costo de expansión al jugador
+     */
+    private void chargeExpansionCost(Player player) {
+        if (expansionCurrency.equalsIgnoreCase("gems")) {
+            GemsEconomyAPI.withdrawBalance(player.getUniqueId(), expansionCost);
+        }
+    }
+    
+    /**
+     * Actualiza el tamaño de la región de WorldGuard
+     */
+    private void updateCityRegionSize(City city) {
+        try {
+            Location center = city.getCenterLocation();
+            World world = center.getWorld();
+            
+            if (world == null) return;
+            
+            RegionManager regionManager = WorldGuard.getInstance()
+                    .getPlatform().getRegionContainer().get(BukkitAdapter.adapt(world));
+            
+            if (regionManager == null) return;
+            
+            // Remover región anterior
+            regionManager.removeRegion("city_" + city.getName().toLowerCase());
+            
+            // Crear nueva región con tamaño actualizado
+            createWorldGuardRegion(city);
+            
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "Error actualizando tamaño de región para la ciudad " + city.getName(), e);
+        }
+    }
+    
+    /**
+     * Sube el nivel de una ciudad
+     */
+    public boolean levelUpCity(String cityName) {
+        City city = cities.get(cityName.toLowerCase());
+        if (city == null) {
+            return false;
+        }
+        
+        if (city.getLevel() >= maxCityLevel) {
+            return false; // Nivel máximo alcanzado
+        }
+        
+        double levelUpCost = calculateLevelUpCost(city.getLevel());
+        if (city.getFunds() < levelUpCost) {
+            return false; // Fondos insuficientes
+        }
+        
+        // Subir nivel
+        city.setFunds(city.getFunds() - levelUpCost);
+        city.setLevel(city.getLevel() + 1);
+        
+        // Aumentar límite de ciudadanos
+        int newMaxCitizens = maxPlayersPerCity + (city.getLevel() * 5);
+        city.setMaxCitizens(newMaxCitizens);
+        
+        saveCities();
+        
+        plugin.getLogger().info("Ciudad " + cityName + " subió al nivel " + city.getLevel());
+        return true;
+    }
+    
+    /**
+     * Calcula el costo para subir al siguiente nivel
+     */
+    private double calculateLevelUpCost(int currentLevel) {
+        double baseCost = plugin.getConfig().getDouble("cities.base-level-up-cost", 5000.0);
+        return baseCost * Math.pow(levelUpCostMultiplier, currentLevel - 1);
+    }
+    
+    /**
+     * Elimina una ciudad (solo administradores)
+     */
+    public boolean deleteCity(String cityName) {
+        City city = cities.get(cityName.toLowerCase());
+        if (city == null) {
+            return false;
+        }
+        
+        // Remover todos los ciudadanos del mapa
+        for (UUID citizenId : city.getCitizens()) {
+            playerCities.remove(citizenId);
+        }
+        
+        // Remover región de WorldGuard
+        removeWorldGuardRegion(city);
+        
+        // Remover ciudad
+        cities.remove(cityName.toLowerCase());
+        
+        saveCities();
+        
+        plugin.getLogger().info("Ciudad " + cityName + " eliminada");
+        return true;
+    }
+    
+    /**
+     * Remueve la región de WorldGuard de una ciudad
+     */
+    private void removeWorldGuardRegion(City city) {
+        try {
+            Location center = city.getCenterLocation();
+            World world = center.getWorld();
+            
+            if (world == null) return;
+            
+            RegionManager regionManager = WorldGuard.getInstance()
+                    .getPlatform().getRegionContainer().get(BukkitAdapter.adapt(world));
+            
+            if (regionManager == null) return;
+            
+            regionManager.removeRegion("city_" + city.getName().toLowerCase());
+            
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "Error removiendo región de WorldGuard para la ciudad " + city.getName(), e);
+        }
+    }
+    
+    /**
+     * Inicia el sistema de recolección de impuestos
+     */
+    private void startTaxCollectionScheduler() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                LocalTime now = LocalTime.now();
+                
+                // Verificar si es hora de recolectar impuestos (con margen de 1 minuto)
+                if (Math.abs(now.getHour() - taxCollectionTime.getHour()) == 0 && 
+                    Math.abs(now.getMinute() - taxCollectionTime.getMinute()) <= 1) {
+                    
+                    collectTaxes();
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 1200L); // Cada minuto
+    }
+    
+    /**
+     * Recolecta impuestos de todas las ciudades
+     */
+    private void collectTaxes() {
+        LocalDateTime now = LocalDateTime.now();
+        
+        for (City city : cities.values()) {
+            // Verificar si ya se recolectaron impuestos hoy
+            if (city.getLastTaxCollection() != null && 
+                city.getLastTaxCollection().toLocalDate().equals(now.toLocalDate())) {
+                continue;
+            }
+            
+            double totalTaxes = 0;
+            int taxpayers = 0;
+            
+            for (UUID citizenId : city.getCitizens()) {
+                double playerBalance = GemsEconomyAPI.getBalance(citizenId);
+                double tax = playerBalance * city.getTaxRate();
+                
+                if (tax > 0) {
+                    GemsEconomyAPI.withdrawBalance(citizenId, tax);
+                    totalTaxes += tax;
+                    taxpayers++;
+                }
+            }
+            
+            // Agregar impuestos al fondo de la ciudad
+            city.setFunds(city.getFunds() + totalTaxes);
+            city.setLastTaxCollection(now);
+            
+            plugin.getLogger().info("Impuestos recolectados para " + city.getName() + 
+                                   ": " + totalTaxes + " gems de " + taxpayers + " ciudadanos");
+        }
+        
+        saveCities();
+    }
+    
+    /**
+     * Carga las ciudades desde el archivo YAML
+     */
+    private void loadCities() {
         if (!citiesFile.exists()) {
-            plugin.saveResource("cities.yml", false);
+            plugin.getLogger().info("Archivo de ciudades no encontrado, creando uno nuevo...");
+            saveCities();
+            return;
         }
-
+        
         citiesConfig = YamlConfiguration.loadConfiguration(citiesFile);
-
-        for (String idStr : citiesConfig.getKeys(false)) {
+        
+        if (citiesConfig.getConfigurationSection("cities") == null) {
+            plugin.getLogger().info("No hay ciudades guardadas");
+            return;
+        }
+        
+        for (String cityName : citiesConfig.getConfigurationSection("cities").getKeys(false)) {
             try {
-                UUID id = UUID.fromString(idStr);
-                String name = citiesConfig.getString(idStr + ".name");
-                Location center = LocationUtils.stringToLocation(citiesConfig.getString(idStr + ".center"));
-
-                // Cargar min y max points
-                Vector minPoint = LocationUtils.stringToVector(citiesConfig.getString(idStr + ".minPoint"));
-                Vector maxPoint = LocationUtils.stringToVector(citiesConfig.getString(idStr + ".maxPoint"));
-
-                // Usar el constructor correcto
-                double taxRate = 0.18; // Valor por defecto o cargado desde config
-                assert center != null; // Valor por defecto o cargado desde config
-                City city = new City(id, name, center.getWorld(), minPoint, maxPoint, center, taxRate);
-
-                // Cargar ciudadanos
-                List<String> citizenStrings = citiesConfig.getStringList(idStr + ".citizens");
-                for (String citizenStr : citizenStrings) {
-                    try {
-                        city.addCitizen(UUID.fromString(citizenStr));
-                    } catch (IllegalArgumentException e) {
-                        plugin.getLogger().warning("Invalid citizen UUID: " + citizenStr);
+                City city = loadCityFromConfig(cityName);
+                if (city != null) {
+                    cities.put(cityName.toLowerCase(), city);
+                    
+                    // Mapear jugadores
+                    for (UUID citizenId : city.getCitizens()) {
+                        playerCities.put(citizenId, cityName.toLowerCase());
                     }
                 }
-
-                // Cargar otras propiedades
-                city.setBankBalance(citiesConfig.getDouble(idStr + ".bankBalance", 0.0));
-                city.setLevel(citiesConfig.getInt(idStr + ".level", 1));
-
-                cities.put(id, city);
             } catch (Exception e) {
-                plugin.getLogger().log(Level.WARNING, "Failed to load city: " + idStr, e);
+                plugin.getLogger().log(Level.SEVERE, "Error cargando ciudad: " + cityName, e);
             }
         }
-
-        plugin.getLogger().info("Loaded " + cities.size() + " cities");
+        
+        plugin.getLogger().info("Cargadas " + cities.size() + " ciudades");
     }
-
+    
     /**
-     * Guardar las ciudades en el archivo "cities.yml"
+     * Carga una ciudad específica desde la configuración
+     */
+    private City loadCityFromConfig(String cityName) {
+        String path = "cities." + cityName + ".";
+        
+        // Datos básicos
+        String name = citiesConfig.getString(path + "name");
+        UUID owner = UUID.fromString(citiesConfig.getString(path + "owner"));
+        Location location = stringToLocation(citiesConfig.getString(path + "location"));
+        
+        if (name == null || owner == null || location == null) {
+            return null;
+        }
+        
+        // Crear ciudad
+        City city = new City(name, owner, location);
+        
+        // Cargar datos adicionales
+        city.setLevel(citiesConfig.getInt(path + "level", 1));
+        city.setFunds(citiesConfig.getDouble(path + "funds", 0.0));
+        city.setTaxRate(citiesConfig.getDouble(path + "tax-rate", defaultTaxRate));
+        city.setMaxCitizens(citiesConfig.getInt(path + "max-citizens", maxPlayersPerCity));
+        city.setExpansionCount(citiesConfig.getInt(path + "expansion-count", 0));
+        city.setProtected(citiesConfig.getBoolean(path + "protection-enabled", true));
+        
+        // Cargar fecha de creación
+        String creationDateStr = citiesConfig.getString(path + "creation-date");
+        if (creationDateStr != null) {
+            city.setCreationDate(LocalDateTime.parse(creationDateStr));
+        }
+        
+        // Cargar última recolección de impuestos
+        String lastTaxStr = citiesConfig.getString(path + "last-tax-collection");
+        if (lastTaxStr != null) {
+            city.setLastTaxCollection(LocalDateTime.parse(lastTaxStr));
+        }
+        
+        // Cargar ciudadanos
+        List<String> citizenStrings = citiesConfig.getStringList(path + "citizens");
+        for (String citizenStr : citizenStrings) {
+            try {
+                UUID citizenId = UUID.fromString(citizenStr);
+                city.addCitizen(citizenId);
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("UUID inválido para ciudadano: " + citizenStr);
+            }
+        }
+        
+        return city;
+    }
+    
+    /**
+     * Guarda todas las ciudades en el archivo YAML
      */
     public void saveCities() {
-        citiesConfig = new YamlConfiguration();
-
-        for (Map.Entry<UUID, City> entry : cities.entrySet()) {
-            UUID id = entry.getKey();
-            City city = entry.getValue();
-            String idStr = id.toString();
-
-            citiesConfig.set(idStr + ".name", city.getName());
-            citiesConfig.set(idStr + ".center", LocationUtils.locationToString(city.getCenter()));
-            citiesConfig.set(idStr + ".minPoint", LocationUtils.vectorToString(city.getMinPoint()));
-            citiesConfig.set(idStr + ".maxPoint", LocationUtils.vectorToString(city.getMaxPoint()));
-
-            // Guardar ciudadanos
-            List<String> citizenStrings = city.getCitizens().stream()
-                    .map(UUID::toString)
-                    .collect(Collectors.toList());
-            citiesConfig.set(idStr + ".citizens", citizenStrings);
-
-            // Guardar otras propiedades
-            citiesConfig.set(idStr + ".bankBalance", city.getBankBalance());
-            citiesConfig.set(idStr + ".level", city.getLevel());
+        if (citiesConfig == null) {
+            citiesConfig = new YamlConfiguration();
         }
-
+        
+        // Limpiar configuración anterior
+        citiesConfig.set("cities", null);
+        
+        // Guardar cada ciudad
+        for (City city : cities.values()) {
+            saveCityToConfig(city);
+        }
+        
         try {
             citiesConfig.save(citiesFile);
         } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save cities", e);
+            plugin.getLogger().log(Level.SEVERE, "Error guardando ciudades", e);
         }
+    }
+    
+    /**
+     * Guarda una ciudad específica en la configuración
+     */
+    private void saveCityToConfig(City city) {
+        String path = "cities." + city.getName().toLowerCase() + ".";
+        
+        citiesConfig.set(path + "name", city.getName());
+        citiesConfig.set(path + "owner", city.getOwner().toString());
+        citiesConfig.set(path + "location", locationToString(city.getCenterLocation()));
+        citiesConfig.set(path + "level", city.getLevel());
+        citiesConfig.set(path + "funds", city.getFunds());
+        citiesConfig.set(path + "tax-rate", city.getTaxRate());
+        citiesConfig.set(path + "max-citizens", city.getMaxCitizens());
+        citiesConfig.set(path + "expansion-count", city.getExpansionCount());
+        citiesConfig.set(path + "protection-enabled", city.isProtected());
+        citiesConfig.set(path + "creation-date", city.getCreationDate().toString());
+        
+        if (city.getLastTaxCollection() != null) {
+            citiesConfig.set(path + "last-tax-collection", city.getLastTaxCollection().toString());
+        }
+        
+        // Guardar ciudadanos
+        List<String> citizenStrings = new ArrayList<>();
+        for (UUID citizenId : city.getCitizens()) {
+            citizenStrings.add(citizenId.toString());
+        }
+        citiesConfig.set(path + "citizens", citizenStrings);
+    }
+    
+    /**
+     * Convierte una ubicación a string para guardar
+     */
+    private String locationToString(Location location) {
+        return location.getWorld().getName() + "," + 
+               location.getX() + "," + 
+               location.getY() + "," + 
+               location.getZ() + "," + 
+               location.getYaw() + "," + 
+               location.getPitch();
+    }
+    
+    /**
+     * Convierte un string a ubicación para cargar
+     */
+    private Location stringToLocation(String locationStr) {
+        try {
+            String[] parts = locationStr.split(",");
+            World world = Bukkit.getWorld(parts[0]);
+            if (world == null) return null;
+            
+            return new Location(
+                world,
+                Double.parseDouble(parts[1]),
+                Double.parseDouble(parts[2]),
+                Double.parseDouble(parts[3]),
+                Float.parseFloat(parts[4]),
+                Float.parseFloat(parts[5])
+            );
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    // Getters y métodos de utilidad
+    public City getCity(String name) {
+        return cities.get(name.toLowerCase());
+    }
+    
+    public City getCityByPlayer(UUID playerId) {
+        String cityName = playerCities.get(playerId);
+        return cityName != null ? cities.get(cityName) : null;
+    }
+    
+    public Collection<City> getAllCities() {
+        return cities.values();
+    }
+    
+    public boolean isPlayerInCity(UUID playerId) {
+        return playerCities.containsKey(playerId);
+    }
+    
+    public int getCityCount() {
+        return cities.size();
+    }
+    
+    public double getNextLevelCost(City city) {
+        return calculateLevelUpCost(city.getLevel());
+    }
+    
+    public void shutdown() {
+        saveCities();
+        plugin.getLogger().info("CityManager guardado y cerrado correctamente");
     }
 }
