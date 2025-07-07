@@ -206,9 +206,9 @@ public class Siege {
         return ChronoUnit.MINUTES.between(LocalDateTime.now(), lootEndTime);
     }
     
-    public void setLootAmount(double amount) {
-        this.lootAmount = Math.max(0, amount);
-    }
+    /*public void setLootAmount(double amount) {
+      *this.lootAmount = Math.max(0, amount);
+    }*/
     
     public boolean canLoot() {
         return inLootPhase && getLootTimeRemaining() > 0;
